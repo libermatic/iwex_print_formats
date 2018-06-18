@@ -1,9 +1,8 @@
-{% set num_item_rows = 8 %}
-
-{% set items_by_page = [] %}
 {% set num_pages = (doc.items|count / num_item_rows)|round(0, 'ceil')|int %}
 
-{% for page in range(1, num_pages + 1) %}
+{% set tax_heads = doc.taxes|map(attribute='account_head')|list %}
+
+{% set totals = namespace(count=0, amount=0, cgst=0, sgst=0, igst=0, gross=0) %}
 
 <div id="variables" style="display: none">
   <span id="margin-top">10mm</span>
@@ -12,6 +11,7 @@
   <span id="margin-bottom">10mm</span>
 </div>
 
+{% for page in range(1, num_pages + 1) %}
 <div class="page-break iwex-page">
   <div class="iwex-header{{ ' iwex-screen-hidden' if page > 1 else '' }}">
     <div class="row">
@@ -23,14 +23,14 @@
         {% if doc.company_address %}
         <p><span class="iwex-label">Address</span>: {{ html2text(doc.company_address_display) }}</p>
         {% endif %}
-        {% set company_phone, company_email = frappe.db.get_value('Company', doc.company, ['phone_no', 'email']) %}
+        {% set company_phone, company_email, co_abbr = frappe.db.get_value('Company', doc.company, ['phone_no', 'email', 'abbr']) %}
         {% set pipe = joiner('|') %}
         <p>
           {% if company_phone %} {{ pipe() }}
-          <span class="iwex-label">Phone</span>: {{ company_phone}}
+          <span class="iwex-label">Phone</span>: {{ company_phone }}
           {% endif %}
           {% if company_email %} {{ pipe() }}
-          <span class="iwex-label">Email</span>: {{ company_email}}
+          <span class="iwex-label">Email</span>: {{ company_email }}
           {% endif %}
         </p>
       </div>
@@ -58,43 +58,43 @@
     <div class="row">
       <div class="col-xs-6">
         <div class="row">
-          <div class="col-xs-4 text-right">Billed To:</div>
-          <div class="col-xs-8">
+          <p class="col-xs-3 text-right">Billed To:</p>
+          <p class="col-xs-9">
             <span class="iwex-strong">{{ doc.customer_name }}</span>
             {% if doc.customer_address %}
             <br />{{ html2text(doc.address_display) }}
             {% endif %}
-          </div>
+          </p>
         </div>
         <div class="row iwex-strong">
-          <div class="col-xs-4 text-right">GSTIN:</div>
-          <div class="col-xs-8">{{ doc.billing_address_gstin }}</div>
+          <p class="col-xs-3 text-right">GSTIN:</p>
+          <p class="col-xs-9">{{ doc.billing_address_gstin }}</p>
         </div>
         <div class="row">
-          <div class="col-xs-4 text-right">State:</div>
+          <p class="col-xs-3 text-right">State:</p>
           {% set gst_state, gst_state_number, customer_state = frappe.db.get_value('Address', doc.customer_address, ['gst_state', 'gst_state_number', 'state']) %}
-          <div class="col-xs-8">
+          <p class="col-xs-9">
             {{ gst_state or customer_state }}
             {% if gst_state_number %}({{ gst_state_number }}){% endif %}
-          </div>
+          </p>
         </div>
       </div>
       <div class="col-xs-6">
         <div class="row">
-          <div class="col-xs-4 text-right">Shipped To:</div>
-          <div class="col-xs-8">{{ html2text(doc.shipping_address) }}</div>
+          <p class="col-xs-5 text-right">Shipped To:</p>
+          <p class="col-xs-7">{{ html2text(doc.shipping_address) }}</p>
         </div>
         <div class="row">
-          <div class="col-xs-4 text-right">Shipping Mode:</div>
-          <div class="col-xs-8">{{ '' }}</div>
+          <p class="col-xs-5 text-right">Shipping Mode:</p>
+          <p class="col-xs-7">{{ '' }}</p>
         </div>
         <div class="row">
-          <div class="col-xs-4 text-right">Vehicle No:</div>
-          <div class="col-xs-8">{{ '' }}</div>
+          <p class="col-xs-5 text-right">Vehicle No:</p>
+          <p class="col-xs-7">{{ '' }}</p>
         </div>
         <div class="row">
-          <div class="col-xs-4 text-right">Place of Supply:</div>
-          <div class="col-xs-8">{{ doc.place_of_supply }}</div>
+          <p class="col-xs-5 text-right">Place of Supply:</p>
+          <p class="col-xs-7">{{ doc.place_of_supply }}</p>
         </div>
       </div>
     </div>
@@ -104,15 +104,15 @@
     <table class="table table-bordered">
       <thead>
         <tr>
-          <th>#</th>
+          <th width="3%">#</th>
           <th>HSN/SAC<br /><span class="iwex-strong">Item Description</span> (Serial No.)</th>
-          <th>Qty<br />UOM</th>
-          <th>Rate<br />Discount</th>
-          <th>Taxable Value</th>
-          <th>CGST%<br />Amount</th>
-          <th>SGST%<br />Amount</th>
-          <th>IGST%<br />Amount</th>
-          <th>Gross Amount</th>
+          <th width="6%">Qty<br />UOM</th>
+          <th width="12%">Rate<br />Discount</th>
+          <th width="12%">Taxable Value</th>
+          <th width="9%">CGST%<br />Amount</th>
+          <th width="9%">SGST%<br />Amount</th>
+          <th width="9%">IGST%<br />Amount</th>
+          <th width="12%">Gross Amount</th>
         </tr>
         <tr class="iwex-table-row-smalltext">
           {% for x in range(9) %}
@@ -121,9 +121,9 @@
         </tr>
       </thead>
       {% set start_idx = (page - 1) * num_item_rows %}
-      {% set end_idx = page * num_item_rows %}
-      <tbody>
-        {% for x in range((page - 1) * num_item_rows, page * num_item_rows) %}
+      {% set end_idx = [page * num_item_rows, doc.items|count]|min %}
+      <tbody class="iwex-tbody">
+        {% for x in range(start_idx, page * num_item_rows) %}
         {% set item = doc.items[x] if x < doc.items|count else None %}
         {% if item %}
         <tr>
@@ -134,7 +134,7 @@
             {% endif %}
             {{ item.description }}
             {% if item.serial_no %}
-            <br/>({{ item.serial_no.replace('\n', ', ') }})
+            <br/><span class="iwex-text-smaller">({{ item.serial_no.replace('\n', ', ') }})</span>
             {% endif %}
             </td>
             <td class="text-center">{{ item.get_formatted('qty') }}<br />{{ item.uom }}</td>
@@ -145,23 +145,194 @@
               {{ frappe.utils.fmt_money(item.get(rate) - item.get('rate'), currency=doc.currency) }}
               <br />
             </td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td class="text-right">{{ item.get_formatted('amount') }}</td>
+            {% set with_taxes = namespace(amount=item.amount) %}
+            {% set rates = json.loads(item.item_tax_rate) %}
+            {% for t in ['CGST', 'SGST', 'IGST'] %}
+            <td class="text-right">
+              {% set tax_head = '{} - {}'.format(t, co_abbr)%}
+              {% set r = rates.get(tax_head)|default(0) if tax_head in tax_heads else 0 %}
+              {{ r }}%
+              <br />
+              {% set tax_amount = item.amount * r / 100 %}
+              {{ frappe.utils.fmt_money(tax_amount, currency=doc.currency) }}
+              {% set with_taxes.amount = with_taxes.amount + tax_amount %}
+            </td>
+            {% endfor %}
+            <td class="text-right">{{ frappe.utils.fmt_money(with_taxes.amount, currency=doc.currency) }}</td>
           </tr>
         {% else %}
-        <tr>
-          <td>uo</td>
+        <tr class="iwex-table-row-smalltext">
+          {% for _ in range(9) %}
+          <td><br /></td>
+          {% endfor %}
         </tr>
         {% endif %}
         {% endfor %}
+        <tfoot>
+          {% if totals.count %}
+          <tr>
+            <th>{{ totals.count }}</th>
+            <th>Sub-Total from Previous Page</th>
+            <th />
+            <th />
+            <th class="text-right">{{ frappe.utils.fmt_money(totals.amount, currency=doc.currency) }}</th>
+            <th class="text-right">{{ frappe.utils.fmt_money(totals.cgst, currency=doc.currency) }}</th>
+            <th class="text-right">{{ frappe.utils.fmt_money(totals.sgst, currency=doc.currency) }}</th>
+            <th class="text-right">{{ frappe.utils.fmt_money(totals.igst, currency=doc.currency) }}</th>
+            <th class="text-right">{{ frappe.utils.fmt_money(totals.gross, currency=doc.currency) }}</th>
+          </tr>
+          {% endif %}
+          {% if page < num_pages %}
+          <tr>
+            {% set items = doc.items[start_idx:end_idx]|list %}
+            {% set totals.count = totals.count + items|length %}
+            <th>{{ items|length }}</th>
+            <th>Subtotal</th>
+            <th />
+            <th />
+            {% set amount = items|sum(attribute='amount') %}
+            {% set totals.amount = totals.amount + amount %}
+            <th class="text-right">{{ frappe.utils.fmt_money(amount, currency=doc.currency) }}</th>
+            {% set taxes = namespace(total=0, gross=0) %}
+            {% for t in ['CGST', 'SGST', 'IGST'] %}
+              {% set taxes.total = 0 %}
+              {% for item in items %}
+                {% set tax_head = '{} - {}'.format(t, co_abbr)%}
+                {% set rates = json.loads(item.item_tax_rate) %}
+                {% set r = rates.get(tax_head)|default(0) if tax_head in tax_heads else 0 %}
+                {% set tax_amount = item.amount * r / 100 %}
+                {% set taxes.total = taxes.total + tax_amount %}
+                {% set taxes.gross = taxes.gross + taxes.total %}
+              {% endfor %}
+              <th class="text-right">{{ frappe.utils.fmt_money(taxes.total, currency=doc.currency) }}</th>
+              {% if t == 'CGST'%}
+              {% set totals.cgst = totals.cgst + taxes.total %}
+              {% endif %}
+              {% if t == 'SGST'%}
+              {% set totals.sgst = totals.sgst + taxes.total %}
+              {% endif %}
+              {% if t == 'IGST'%}
+              {% set totals.igst = totals.igst + taxes.total %}
+              {% endif %}
+            {% endfor %}
+            {% set totals.gross = totals.gross + taxes.gross %}
+            <th class="text-right">{{ frappe.utils.fmt_money(taxes.gross, currency=doc.currency) }}</th>
+          </tr>
+          {% endif %}
+          {% if page == num_pages %}
+          <tr>
+            <th>{{ doc.items|length }}</th>
+            <th>Total</th>
+            <th />
+            <th />
+            <th class="text-right">{{ doc.get_formatted('net_total') }}</th>
+            {% for t in ['CGST', 'SGST', 'IGST'] %}
+            <th class="text-right">
+              {% set tax = doc.taxes|selectattr('account_head', 'equalto',  '{} - {}'.format(t, co_abbr))|first %}
+              {{ frappe.utils.fmt_money(tax.tax_amount if tax else 0, currency=doc.currency) }}
+              <br />
+            </th>
+            {% endfor %}
+            <th class="text-right">{{ doc.get_formatted('grand_total') }}</th>
+          </tr>
+          {% endif %}
+          {% if page == num_pages %}
+          <tr>
+            <td colspan="6" class="text-right">GST Total: {{ doc.get_formatted('total_taxes_and_charges') }}</td>
+            <td colspan="2" class="text-right">Round Off:</td>
+            <td class="text-right">{{ doc.get_formatted('rounding_adjustment') }}</td>
+          </tr>
+          <tr>
+            <td colspan="6">{{ doc.in_words }}</td>
+            <td colspan="2" class="text-right iwex-strong">Rounded Total:</td>
+            <td class="text-right iwex-strong">{{ doc.get_formatted('rounded_total') }}</td>
+          </tr>
+          {% endif %}
+        </tfoot>
       </tbody>
     </table>
   </div>
 
-  <div class="iwex-footer iwex-screen-hidden">
+  {% if page == num_pages %}
+  <div>
+    <div class="iwex-label">Tax Breakup:</div>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th width="3%">#</th>
+          <th>HSN/SAC</th>
+          <th width="12%">Taxable Value</th>
+          <th width="9%">CGST (A)</th>
+          <th width="9%">SGST (B)</th>
+          <th width="9%">IGST (C)</th>
+          <th width="12%">Total (A+B+C)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for hsn in doc.items|map(attribute='gst_hsn_code')|unique %}
+        <tr>
+          <td class="text-center">{{ loop.index }}</td>
+          <td>{{ hsn }}</td>
+          {% set taxes = namespace(total=0) %}
+          <td class="text-right">{{ frappe.utils.fmt_money(doc.items|selectattr('gst_hsn_code', 'equalto', hsn)|sum(attribute='amount'), currency=doc.currency) }}</td>
+          {% for t in ['CGST', 'SGST', 'IGST'] %}
+          {% set taxes.amount = 0 %}
+          {% for item in doc.items|selectattr('gst_hsn_code', 'equalto', hsn) %}
+          {% set rates = json.loads(item.item_tax_rate) %}
+          {% set tax_head = '{} - {}'.format(t, co_abbr) %}
+          {% set r = rates.get(tax_head)|default(0) if tax_head in tax_heads else 0 %}
+          {% set taxes.amount = taxes.amount + item.amount * r / 100 %}
+          {% endfor %}
+          {% set taxes.total = taxes.total + taxes.amount %}
+          <td class="text-right">{{ frappe.utils.fmt_money(taxes.amount, currency=doc.currency) }}</td>
+          {% endfor %}
+          <td class="text-right">{{ frappe.utils.fmt_money(taxes.total, currency=doc.currency) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if doc.terms %}
+  <div class="row iwex-text-small">
+    <div class="col-xs-12">
+      <p><span class="iwex-label">Terms & Conditions</span>{{ doc.terms }}</p>
+    </div>
+  </div>
+  {% endif %}
+  {% set pipe = joiner('|') %}
+  <div class="row iwex-text-small">
+    <div class="col-xs-12">
+      <p>
+        {% if bank_details %} {{ pipe() }}
+        <span class="iwex-label">Bank Details</span>: {{ bank_details }}
+        {% endif %}
+        {% if payment_methods %} {{ pipe() }}
+        <span class="iwex-label">Payment</span>: {{ payment_methods }}
+        {% endif %}
+      </p>
+    </div>
+  </div>
+  <hr class="iwex-hr-thin" />
+  <div class="row iwex-aside iwex-text-smaller">
+    <div class="col-xs-4">
+      <p>Received goods in Good Condition</p>
+      <br /><br />
+      <p>Name, Mobile & Signature of the receiver.</p>
+    </div>
+    <div class="col-xs-4 text-center iwex-text-small">
+      <div class="iwex-strong iwex-text-larger">Thank You</div>
+      <p>for being our Customer.<br />Look forward to serve you again.</p>
+    </div>
+    <div class="col-xs-4">
+      <p>Prepared by: {{ frappe.db.get_value("User", frappe.user, "first_name") }}</p>
+      <br /><br />
+      <p class="text-right">Company Stamp & Signature</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="iwex-footer iwex-screen-hidden iwex-text-smaller">
     <hr class="iwex-hr-thin" />
     <div class="row">
       <div class="col-xs-12 text-center">
