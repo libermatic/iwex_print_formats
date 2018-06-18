@@ -1,0 +1,178 @@
+{% set num_item_rows = 8 %}
+
+{% set items_by_page = [] %}
+{% set num_pages = (doc.items|count / num_item_rows)|round(0, 'ceil')|int %}
+
+{% for page in range(1, num_pages + 1) %}
+
+<div id="variables" style="display: none">
+  <span id="margin-top">10mm</span>
+  <span id="margin-left">10mm</span>
+  <span id="margin-right">10mm</span>
+  <span id="margin-bottom">10mm</span>
+</div>
+
+<div class="page-break iwex-page">
+  <div class="iwex-header{{ ' iwex-screen-hidden' if page > 1 else '' }}">
+    <div class="row">
+      <div class="col-xs-7">
+        <h1 class="iwex-strong">{{ doc.company }}</h1>
+        {% if doc.company_gstin %}
+        <p><span class="iwex-label">GSTIN</span>: {{ doc.company_gstin }}</p>
+        {% endif %}
+        {% if doc.company_address %}
+        <p><span class="iwex-label">Address</span>: {{ html2text(doc.company_address_display) }}</p>
+        {% endif %}
+        {% set company_phone, company_email = frappe.db.get_value('Company', doc.company, ['phone_no', 'email']) %}
+        {% set pipe = joiner('|') %}
+        <p>
+          {% if company_phone %} {{ pipe() }}
+          <span class="iwex-label">Phone</span>: {{ company_phone}}
+          {% endif %}
+          {% if company_email %} {{ pipe() }}
+          <span class="iwex-label">Email</span>: {{ company_email}}
+          {% endif %}
+        </p>
+      </div>
+      <div class="col-xs-5 text-right">
+        <h2 class="iwex-strong">GST INVOICE</h2>
+        <p class="iwex-strong"><span class="iwex-label">Invoice ID</span>: {{ doc.name }}</p>
+        <p><span class="iwex-label">Invoice Date</span>: {{ doc.get_formatted('posting_date') }}</p>
+        <p><span class="iwex-label">Eligible for Reverse GST</span>: {{ 'Yes' if doc.reverse_charge == 'Y' else 'No' }}</p>
+      </div>
+    </div>
+    <hr class="iwex-hr-thin" />
+  </div>
+  <div{{ ' class="iwex-screen-hidden"' if page > 1 else '' }}>
+    {% if doc.po_no %}
+    <div class="row">
+      <div class="col-xs-6 text-center">
+        <span class="iwex-label">PO ID</span>: {{ doc.po_no }}
+      </div>
+      <div class="col-xs-6 text-center">
+        <span class="iwex-label">PO Date</span>: {{ doc.get_formatted('po_date') }}
+      </div>
+    </div>
+    <hr class="iwex-hr-thin" />
+    {% endif %}
+    <div class="row">
+      <div class="col-xs-6">
+        <div class="row">
+          <div class="col-xs-4 text-right">Billed To:</div>
+          <div class="col-xs-8">
+            <span class="iwex-strong">{{ doc.customer_name }}</span>
+            {% if doc.customer_address %}
+            <br />{{ html2text(doc.address_display) }}
+            {% endif %}
+          </div>
+        </div>
+        <div class="row iwex-strong">
+          <div class="col-xs-4 text-right">GSTIN:</div>
+          <div class="col-xs-8">{{ doc.billing_address_gstin }}</div>
+        </div>
+        <div class="row">
+          <div class="col-xs-4 text-right">State:</div>
+          {% set gst_state, gst_state_number, customer_state = frappe.db.get_value('Address', doc.customer_address, ['gst_state', 'gst_state_number', 'state']) %}
+          <div class="col-xs-8">
+            {{ gst_state or customer_state }}
+            {% if gst_state_number %}({{ gst_state_number }}){% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-xs-6">
+        <div class="row">
+          <div class="col-xs-4 text-right">Shipped To:</div>
+          <div class="col-xs-8">{{ html2text(doc.shipping_address) }}</div>
+        </div>
+        <div class="row">
+          <div class="col-xs-4 text-right">Shipping Mode:</div>
+          <div class="col-xs-8">{{ '' }}</div>
+        </div>
+        <div class="row">
+          <div class="col-xs-4 text-right">Vehicle No:</div>
+          <div class="col-xs-8">{{ '' }}</div>
+        </div>
+        <div class="row">
+          <div class="col-xs-4 text-right">Place of Supply:</div>
+          <div class="col-xs-8">{{ doc.place_of_supply }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="iwex-body">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>HSN/SAC<br /><span class="iwex-strong">Item Description</span> (Serial No.)</th>
+          <th>Qty<br />UOM</th>
+          <th>Rate<br />Discount</th>
+          <th>Taxable Value</th>
+          <th>CGST%<br />Amount</th>
+          <th>SGST%<br />Amount</th>
+          <th>IGST%<br />Amount</th>
+          <th>Gross Amount</th>
+        </tr>
+        <tr class="iwex-table-row-smalltext">
+          {% for x in range(9) %}
+          <th>{{ x + 1 }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      {% set start_idx = (page - 1) * num_item_rows %}
+      {% set end_idx = page * num_item_rows %}
+      <tbody>
+        {% for x in range((page - 1) * num_item_rows, page * num_item_rows) %}
+        {% set item = doc.items[x] if x < doc.items|count else None %}
+        {% if item %}
+        <tr>
+          <td class="text-center">{{ item.idx }}</td>
+          <td>
+            {% if item.gst_hsn_code %}
+            <span class="iwex-strong">{{ item.gst_hsn_code }}</span><br />
+            {% endif %}
+            {{ item.description }}
+            {% if item.serial_no %}
+            <br/>({{ item.serial_no.replace('\n', ', ') }})
+            {% endif %}
+            </td>
+            <td class="text-center">{{ item.get_formatted('qty') }}<br />{{ item.uom }}</td>
+            <td class="text-right">
+              {% set rate = 'price_list_rate' if item.price_list_rate else 'rate' %}
+              {{ item.get_formatted(rate) }}
+              <br />
+              {{ frappe.utils.fmt_money(item.get(rate) - item.get('rate'), currency=doc.currency) }}
+              <br />
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        {% else %}
+        <tr>
+          <td>uo</td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="iwex-footer iwex-screen-hidden">
+    <hr class="iwex-hr-thin" />
+    <div class="row">
+      <div class="col-xs-12 text-center">
+        <span class="iwex-label">NB</span>: Company Stamp or Signature not required, if this document has received by email.
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-4 text-left">GST Invoice: {{ doc.name }}</div>
+      <div class="col-xs-4 text-center">Dated: {{ doc.get_formatted('posting_date') }}</div>
+      <div class="col-xs-4 text-right">Page {{ page }} of {{ num_pages }}</div>
+    </div>
+  </div>
+</div>
+{% endfor %}

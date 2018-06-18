@@ -1,0 +1,50 @@
+<style>
+@media screen {
+  .print-format {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 15mm;
+  }
+}
+@media print {
+  .print-format .iwex-page {
+    height: 276mm;
+    position: relative;
+  }
+}
+.iwex-page h1, .iwex-page h2 {
+  font-size: 20pt;
+}
+.print-format th {
+  font-weight: normal;
+  text-align: center;
+}
+.iwex-table-row-smalltext > th {
+  font-size: 8pt;
+}
+.iwex-label {
+  text-decoration: underline;
+}
+.iwex-strong {
+  font-weight: bold;
+}
+.iwex-hr-thin {
+  margin: 4pt 0;
+}
+.iwex-footer {
+  font-size: 8pt;
+}
+@media screen {
+  .iwex-screen-hidden {
+    display: none;
+  }
+}
+@media print {
+  .iwex-footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+}
+</style>
