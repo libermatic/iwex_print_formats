@@ -183,18 +183,17 @@
             <th class="text-right">{{ frappe.utils.fmt_money(totals.gross, currency=doc.currency) }}</th>
           </tr>
           {% endif %}
-          {% if page < num_pages %}
           <tr>
             {% set items = doc.items[start_idx:end_idx]|list %}
             {% set totals.count = totals.count + items|length %}
-            <th>{{ items|length }}</th>
-            <th>Subtotal</th>
+            <th>{{ totals.count }}</th>
+            <th>{{ 'Subtotal' if page < num_pages else 'Total' }}</th>
             <th />
             <th />
             {% set amount = items|sum(attribute='amount') %}
             {% set totals.amount = totals.amount + amount %}
-            <th class="text-right">{{ frappe.utils.fmt_money(amount, currency=doc.currency) }}</th>
-            {% set taxes = namespace(total=0, gross=0) %}
+            <th class="text-right">{{ frappe.utils.fmt_money(totals.amount, currency=doc.currency) }}</th>
+            {% set taxes = namespace(total=0, cum=0) %}
             {% for t in ['CGST', 'SGST', 'IGST'] %}
               {% set taxes.total = 0 %}
               {% for item in items %}
@@ -203,40 +202,24 @@
                 {% set r = rates.get(tax_head)|default(0) if tax_head in tax_heads else 0 %}
                 {% set tax_amount = item.amount * r / 100 %}
                 {% set taxes.total = taxes.total + tax_amount %}
-                {% set taxes.gross = taxes.gross + taxes.total %}
               {% endfor %}
-              <th class="text-right">{{ frappe.utils.fmt_money(taxes.total, currency=doc.currency) }}</th>
+              {% set taxes.cum = taxes.cum + taxes.total %}
               {% if t == 'CGST'%}
-              {% set totals.cgst = totals.cgst + taxes.total %}
+                {% set totals.cgst = totals.cgst + taxes.total %}
+                <th class="text-right">{{ frappe.utils.fmt_money(totals.cgst, currency=doc.currency) }}</th>
               {% endif %}
               {% if t == 'SGST'%}
-              {% set totals.sgst = totals.sgst + taxes.total %}
+                {% set totals.sgst = totals.sgst + taxes.total %}
+                <th class="text-right">{{ frappe.utils.fmt_money(totals.sgst, currency=doc.currency) }}</th>
               {% endif %}
               {% if t == 'IGST'%}
-              {% set totals.igst = totals.igst + taxes.total %}
+                {% set totals.igst = totals.igst + taxes.total %}
+                <th class="text-right">{{ frappe.utils.fmt_money(totals.igst, currency=doc.currency) }}</th>
               {% endif %}
             {% endfor %}
-            {% set totals.gross = totals.gross + taxes.gross %}
-            <th class="text-right">{{ frappe.utils.fmt_money(taxes.gross, currency=doc.currency) }}</th>
+            {% set totals.gross = totals.gross + amount + taxes.cum %}
+            <th class="text-right">{{ frappe.utils.fmt_money(totals.gross, currency=doc.currency) }}</th>
           </tr>
-          {% endif %}
-          {% if page == num_pages %}
-          <tr>
-            <th>{{ doc.items|length }}</th>
-            <th>Total</th>
-            <th />
-            <th />
-            <th class="text-right">{{ doc.get_formatted('net_total') }}</th>
-            {% for t in ['CGST', 'SGST', 'IGST'] %}
-            <th class="text-right">
-              {% set tax = doc.taxes|selectattr('account_head', 'equalto',  '{} - {}'.format(t, co_abbr))|first %}
-              {{ frappe.utils.fmt_money(tax.tax_amount if tax else 0, currency=doc.currency) }}
-              <br />
-            </th>
-            {% endfor %}
-            <th class="text-right">{{ doc.get_formatted('grand_total') }}</th>
-          </tr>
-          {% endif %}
           {% if page == num_pages %}
           <tr>
             <td colspan="6" class="text-right">GST Total: {{ doc.get_formatted('total_taxes_and_charges') }}</td>
