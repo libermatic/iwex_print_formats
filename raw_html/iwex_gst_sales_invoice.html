@@ -55,8 +55,11 @@
 .iwex-strong {
   font-weight: bold;
 }
+.iwex-text-regular {
+  font-weight: normal;
+}
 .iwex-hr-thin {
-  margin: 2pt 0;
+  margin: 4pt 0;
 }
 .iwex-text-small {
   font-size: 8pt;
@@ -123,7 +126,7 @@
         </p>
       </div>
       <div class="col-xs-5 text-right">
-        <h2 class="iwex-strong">GST INVOICE</h2>
+        <h2 class="iwex-strong">GST INVOICE {% if doc.status == 'Draft' %}<span class="iwex-text-small iwex-text-regular">(DRAFT)</span>{% endif %}</h2>
         <p class="iwex-strong"><span class="iwex-label">Invoice ID</span>: {{ doc.name }}</p>
         <p><span class="iwex-label">Invoice Date</span>: {{ doc.get_formatted('posting_date') }}</p>
         <p><span class="iwex-label">Eligible for Reverse GST</span>: {{ 'Yes' if doc.reverse_charge == 'Y' else 'No' }}</p>
@@ -192,7 +195,7 @@
     <table class="table table-bordered">
       <thead>
         <tr>
-          <th width="20pt">#</th>
+          <th width="25pt">#</th>
           <th>HSN/SAC<br /><span class="iwex-strong">Item Description</span> (Serial No.)</th>
           <th width="{{ min_col_width_qty }}">Qty<br />UOM</th>
           <th width="{{ min_col_width_rate }}">Rate<br />Discount</th>
@@ -331,13 +334,13 @@
     <table class="table table-bordered">
       <thead>
         <tr>
-          <th width="20pt">#</th>
+          <th width="25pt">#</th>
           <th>HSN/SAC</th>
-          <th width="{{ min_col_width_amount }}">Taxable Value</th>
+          <th width="{{ min_col_width_tax }}">Taxable Value</th>
           <th width="{{ min_col_width_tax }}">CGST (A)</th>
           <th width="{{ min_col_width_tax }}">SGST (B)</th>
           <th width="{{ min_col_width_tax }}">IGST (C)</th>
-          <th width="{{ min_col_width_amount }}">Total (A+B+C)</th>
+          <th width="{{ min_col_width_tax }}">Total (A+B+C)</th>
         </tr>
       </thead>
       <tbody>
@@ -348,15 +351,15 @@
           {% set taxes = namespace(total=0) %}
           <td class="text-right">{{ frappe.utils.fmt_money(doc.items|selectattr('gst_hsn_code', 'equalto', hsn)|sum(attribute='amount'), currency=doc.currency) }}</td>
           {% for t in ['CGST', 'SGST', 'IGST'] %}
-          {% set taxes.amount = 0 %}
-          {% for item in doc.items|selectattr('gst_hsn_code', 'equalto', hsn) %}
-          {% set rates = json.loads(item.item_tax_rate) %}
-          {% set tax_head = '{} - {}'.format(t, co_abbr) %}
-          {% set r = rates.get(tax_head)|default(0) if tax_head in tax_heads else 0 %}
-          {% set taxes.amount = taxes.amount + item.amount * r / 100 %}
-          {% endfor %}
-          {% set taxes.total = taxes.total + taxes.amount %}
-          <td class="text-right">{{ frappe.utils.fmt_money(taxes.amount, currency=doc.currency) }}</td>
+            {% set taxes.amount = 0 %}
+            {% for item in doc.items|selectattr('gst_hsn_code', 'equalto', hsn) %}
+              {% set rates = json.loads(item.item_tax_rate) %}
+              {% set tax_head = '{} - {}'.format(t, co_abbr) %}
+              {% set r = rates.get(tax_head)|default(0) if tax_head in tax_heads else 0 %}
+              {% set taxes.amount = taxes.amount + item.amount * r / 100 %}
+            {% endfor %}
+            {% set taxes.total = taxes.total + taxes.amount %}
+            <td class="text-right">{{ frappe.utils.fmt_money(taxes.amount, currency=doc.currency) }}</td>
           {% endfor %}
           <td class="text-right">{{ frappe.utils.fmt_money(taxes.total, currency=doc.currency) }}</td>
         </tr>
@@ -371,7 +374,7 @@
       {% if doc.terms %}
       <div class="row iwex-text-small">
         <div class="col-xs-12">
-          <p><span class="iwex-label">Terms &amp; Conditions</span>{{ doc.terms }}</p>
+          <p><span class="iwex-label">Terms &amp; Conditions</span>: {{ doc.terms }}</p>
         </div>
       </div>
       {% endif %}
