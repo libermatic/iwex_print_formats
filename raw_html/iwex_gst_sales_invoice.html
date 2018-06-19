@@ -35,14 +35,12 @@
   font-weight: normal;
   text-align: center;
 }
-.iwex-page .table th.text-right {
+.iwex-page .table th.text-right, .iwex-page .table td.text-right {
+  white-space: nowrap;
   text-align: right;
 }
-.iwex-page .table tbody td {
+.iwex-page .table tbody td, .iwex-page .table tfoot th {
   font-size: 8pt;
-}
-.iwex-page .table tbody.iwex-tbody td {
-  height: 33pt;
 }
 .iwex-table-row-smalltext > th {
   font-size: 7pt;
@@ -190,15 +188,15 @@
     <table class="table table-bordered">
       <thead>
         <tr>
-          <th width="3%">#</th>
+          <th width="20pt">#</th>
           <th>HSN/SAC<br /><span class="iwex-strong">Item Description</span> (Serial No.)</th>
-          <th width="6%">Qty<br />UOM</th>
-          <th width="12%">Rate<br />Discount</th>
-          <th width="12%">Taxable Value</th>
-          <th width="9%">CGST%<br />Amount</th>
-          <th width="9%">SGST%<br />Amount</th>
-          <th width="9%">IGST%<br />Amount</th>
-          <th width="15%">Gross Amount</th>
+          <th width="{{ min_col_width_qty }}">Qty<br />UOM</th>
+          <th width="{{ min_col_width_rate }}">Rate<br />Discount</th>
+          <th width="{{ min_col_width_amount }}">Taxable Value</th>
+          <th width="{{ min_col_width_tax }}">CGST%<br />Amount</th>
+          <th width="{{ min_col_width_tax }}">SGST%<br />Amount</th>
+          <th width="{{ min_col_width_tax }}">IGST%<br />Amount</th>
+          <th width="{{ min_col_width_amount }}">Gross Amount</th>
         </tr>
         <tr class="iwex-table-row-smalltext">
           {% for x in range(9) %}
@@ -329,13 +327,13 @@
     <table class="table table-bordered">
       <thead>
         <tr>
-          <th width="3%">#</th>
+          <th width="20pt">#</th>
           <th>HSN/SAC</th>
-          <th width="12%">Taxable Value</th>
-          <th width="9%">CGST (A)</th>
-          <th width="9%">SGST (B)</th>
-          <th width="9%">IGST (C)</th>
-          <th width="15%">Total (A+B+C)</th>
+          <th width="{{ min_col_width_amount }}">Taxable Value</th>
+          <th width="{{ min_col_width_tax }}">CGST (A)</th>
+          <th width="{{ min_col_width_tax }}">SGST (B)</th>
+          <th width="{{ min_col_width_tax }}">IGST (C)</th>
+          <th width="{{ min_col_width_amount }}">Total (A+B+C)</th>
         </tr>
       </thead>
       <tbody>
