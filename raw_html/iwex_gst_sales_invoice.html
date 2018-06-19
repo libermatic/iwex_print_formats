@@ -369,7 +369,7 @@
       {% if doc.terms %}
       <div class="row iwex-text-small">
         <div class="col-xs-12">
-          <p><span class="iwex-label">Terms & Conditions</span>{{ doc.terms }}</p>
+          <p><span class="iwex-label">Terms &amp; Conditions</span>{{ doc.terms }}</p>
         </div>
       </div>
       {% endif %}
@@ -391,7 +391,7 @@
         <div class="col-xs-4">
           <p>Received goods in Good Condition</p>
           <br /><br />
-          <p>Name, Mobile & Signature of the receiver.</p>
+          <p>Name, Mobile &amp; Signature of the receiver.</p>
         </div>
         <div class="col-xs-4 text-center iwex-text-small">
           <div class="iwex-strong iwex-text-larger">Thank You</div>
@@ -400,7 +400,7 @@
         <div class="col-xs-4">
           <p>Prepared by: {{ frappe.db.get_value("User", frappe.user, "first_name") }}</p>
           <br /><br />
-          <p class="text-right">Company Stamp & Signature</p>
+          <p class="text-right">Company Stamp &amp; Signature</p>
         </div>
       </div>
     {% endif %}
