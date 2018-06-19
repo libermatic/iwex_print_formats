@@ -112,7 +112,7 @@
           <th width="9%">CGST%<br />Amount</th>
           <th width="9%">SGST%<br />Amount</th>
           <th width="9%">IGST%<br />Amount</th>
-          <th width="12%">Gross Amount</th>
+          <th width="15%">Gross Amount</th>
         </tr>
         <tr class="iwex-table-row-smalltext">
           {% for x in range(9) %}
@@ -173,7 +173,7 @@
           {% if totals.count %}
           <tr>
             <th>{{ totals.count }}</th>
-            <th>Sub-Total from Previous Page</th>
+            <th>Carried Fwd</th>
             <th />
             <th />
             <th class="text-right">{{ frappe.utils.fmt_money(totals.amount, currency=doc.currency) }}</th>
@@ -249,7 +249,7 @@
           <th width="9%">CGST (A)</th>
           <th width="9%">SGST (B)</th>
           <th width="9%">IGST (C)</th>
-          <th width="12%">Total (A+B+C)</th>
+          <th width="15%">Total (A+B+C)</th>
         </tr>
       </thead>
       <tbody>
