@@ -276,53 +276,55 @@
       </tbody>
     </table>
   </div>
-  {% if doc.terms %}
-  <div class="row iwex-text-small">
-    <div class="col-xs-12">
-      <p><span class="iwex-label">Terms & Conditions</span>{{ doc.terms }}</p>
-    </div>
-  </div>
-  {% endif %}
-  {% set pipe = joiner('|') %}
-  <div class="row iwex-text-small">
-    <div class="col-xs-12">
-      <p>
-        {% if bank_details %} {{ pipe() }}
-        <span class="iwex-label">Bank Details</span>: {{ bank_details }}
-        {% endif %}
-        {% if payment_methods %} {{ pipe() }}
-        <span class="iwex-label">Payment</span>: {{ payment_methods }}
-        {% endif %}
-      </p>
-    </div>
-  </div>
-  <hr class="iwex-hr-thin" />
-  <div class="row iwex-aside iwex-text-smaller">
-    <div class="col-xs-4">
-      <p>Received goods in Good Condition</p>
-      <br /><br />
-      <p>Name, Mobile & Signature of the receiver.</p>
-    </div>
-    <div class="col-xs-4 text-center iwex-text-small">
-      <div class="iwex-strong iwex-text-larger">Thank You</div>
-      <p>for being our Customer.<br />Look forward to serve you again.</p>
-    </div>
-    <div class="col-xs-4">
-      <p>Prepared by: {{ frappe.db.get_value("User", frappe.user, "first_name") }}</p>
-      <br /><br />
-      <p class="text-right">Company Stamp & Signature</p>
-    </div>
-  </div>
   {% endif %}
 
-  <div class="iwex-footer iwex-screen-hidden iwex-text-smaller">
-    <hr class="iwex-hr-thin" />
-    <div class="row">
+  <div class="iwex-footer">
+    {% if page == num_pages %}
+      {% if doc.terms %}
+      <div class="row iwex-text-small">
+        <div class="col-xs-12">
+          <p><span class="iwex-label">Terms & Conditions</span>{{ doc.terms }}</p>
+        </div>
+      </div>
+      {% endif %}
+      {% set pipe = joiner('|') %}
+      <div class="row iwex-text-small">
+        <div class="col-xs-12">
+          <p>
+            {% if bank_details %} {{ pipe() }}
+            <span class="iwex-label">Bank Details</span>: {{ bank_details }}
+            {% endif %}
+            {% if payment_methods %} {{ pipe() }}
+            <span class="iwex-label">Payment</span>: {{ payment_methods }}
+            {% endif %}
+          </p>
+        </div>
+      </div>
+      <hr class="iwex-hr-thin" />
+      <div class="row iwex-aside iwex-text-smaller">
+        <div class="col-xs-4">
+          <p>Received goods in Good Condition</p>
+          <br /><br />
+          <p>Name, Mobile & Signature of the receiver.</p>
+        </div>
+        <div class="col-xs-4 text-center iwex-text-small">
+          <div class="iwex-strong iwex-text-larger">Thank You</div>
+          <p>for being our Customer.<br />Look forward to serve you again.</p>
+        </div>
+        <div class="col-xs-4">
+          <p>Prepared by: {{ frappe.db.get_value("User", frappe.user, "first_name") }}</p>
+          <br /><br />
+          <p class="text-right">Company Stamp & Signature</p>
+        </div>
+      </div>
+    {% endif %}
+    <hr class="iwex-hr-thin iwex-screen-hidden" />
+    <div class="row iwex-screen-hidden iwex-text-smaller">
       <div class="col-xs-12 text-center">
         <span class="iwex-label">NB</span>: Company Stamp or Signature not required, if this document has received by email.
       </div>
     </div>
-    <div class="row">
+    <div class="row iwex-screen-hidden iwex-text-smaller">
       <div class="col-xs-4 text-left">GST Invoice: {{ doc.name }}</div>
       <div class="col-xs-4 text-center">Dated: {{ doc.get_formatted('posting_date') }}</div>
       <div class="col-xs-4 text-right">Page {{ page }} of {{ num_pages }}</div>
