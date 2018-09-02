@@ -7,8 +7,14 @@
   }
 }
 @media print {
+  .print-format {
+    margin-top: 10mm;
+    margin-left: 10mm;
+    margin-right: 10mm;
+    margin-bottom: 10mm;
+    height: {{ page_height }};
+  }
   .print-format .iwex-page {
-    height: 276mm;
     position: relative;
   }
 }
