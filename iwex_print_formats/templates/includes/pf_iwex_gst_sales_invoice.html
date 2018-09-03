@@ -59,7 +59,7 @@
   </div>
   <div{{ ' class="iwex-screen-hidden"' if page > 1 else '' }}>
     {% if doc.po_no %}
-    <div class="row">
+    <div class="row iwex-bg-accent iwex-po-row">
       <div class="col-xs-6 text-center">
         <span class="iwex-label">PO ID</span>: {{ doc.po_no }}
       </div>
@@ -128,13 +128,13 @@
           {% endfor %}
           <th width="{{ min_col_width_amount }}">Gross Amount</th>
         </tr>
-        <tr class="iwex-table-row-smalltext">
+        <tr class="iwex-table-row-smalltext iwex-table-row-accent">
           {% for x in range(item_cols) %}
           <th>{{ x + 1 }}</th>
           {% endfor %}
         </tr>
         {% if brought_fwd.count %}
-        <tr>
+        <tr class="iwex-table-row-accent">
           <th>{{ brought_fwd.count }}</th>
           <th>Brought Forward</th>
           <th></th>
@@ -205,7 +205,7 @@
         {% endif %}
         {% endfor %}
         <tfoot>
-          <tr>
+          <tr class="iwex-table-row-accent">
             <th>{{ subtotal.count }}</th>
             <th>{{ 'Subtotal' if page < num_pages else 'Total' }}</th>
             <th></th>
@@ -227,12 +227,12 @@
             {% set _ = brought_fwd.update({tax: brought_fwd.get(tax, 0) + subtotal[tax]}) %}
           {% endfor %}
           {% if page == num_pages %}
-          <tr>
+          <tr class="iwex-table-row-accent">
             <td colspan="4" class="text-right">GST Total: {{ doc.get_formatted('total_taxes_and_charges') }}</td>
             <td colspan="{{ item_cols - 5 }}" class="text-right">Round Off:</td>
             <td class="text-right">{{ doc.get_formatted('rounding_adjustment') }}</td>
           </tr>
-          <tr>
+          <tr class="iwex-table-row-accent">
             <td colspan="4">{{ doc.in_words }}</td>
             <td colspan="{{ item_cols - 5 }}" class="text-right iwex-strong">Rounded Total:</td>
             <td class="text-right iwex-strong">{{ doc.get_formatted('rounded_total') }}</td>
@@ -248,8 +248,8 @@
     <div class="iwex-label">Tax Breakup:</div>
     <table class="table table-bordered">
       <thead>
-        <tr>
           <th width="25pt">#</th>
+        <tr class="iwex-table-row-accent">
           <th>HSN/SAC</th>
           <th width="{{ min_col_width_tax }}">Taxable Value</th>
           {% set labels = ['A', 'B', 'C'] %}
@@ -327,12 +327,12 @@
       </div>
     {% endif %}
     <hr class="iwex-hr-thin iwex-screen-hidden" />
-    <div class="row iwex-screen-hidden iwex-text-smaller">
+    <div class="row iwex-screen-hidden iwex-text-footer-last">
       <div class="col-xs-12 text-center">
         <span class="iwex-label">NB</span>: Company Stamp or Signature not required, if this document has received by email.
       </div>
     </div>
-    <div class="row iwex-screen-hidden iwex-text-smaller">
+    <div class="row iwex-screen-hidden iwex-text-footer-last">
       <div class="col-xs-4 text-left">GST Invoice: {{ doc.name }}</div>
       <div class="col-xs-4 text-center">Dated: {{ doc.get_formatted('posting_date') }}</div>
       <div class="col-xs-4 text-right">Page {{ page }} of {{ num_pages }}</div>
