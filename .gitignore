@@ -4,3 +4,4 @@
 *.swp
 tags
 iwex_print_formats/docs/current
+.ropeproject

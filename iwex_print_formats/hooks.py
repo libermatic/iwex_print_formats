@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from . import __version__ as app_version
+from . import __version__
 
 app_name = "iwex_print_formats"
+app_version = __version__
 app_title = "iWEX Print Formats"
 app_publisher = "Libermatic"
 app_description = "Print Formats for iWEX"
@@ -10,6 +11,8 @@ app_icon = "fa fa-print"
 app_color = "#0000FF"
 app_email = "info@libermatic.com"
 app_license = "MIT"
+
+error_report_email = 'support@libermatic.com'
 
 # Includes in <head>
 # ------------------
@@ -39,7 +42,7 @@ app_license = "MIT"
 
 # website user home page (by Role)
 # role_home_page = {
-#	"Role": "home_page"
+#    "Role": "home_page"
 # }
 
 # Website user home page (by function)
@@ -61,7 +64,8 @@ app_license = "MIT"
 # ------------------
 # See frappe.core.notifications.get_notification_config
 
-# notification_config = "iwex_print_formats.notifications.get_notification_config"
+# notification_config = \
+#   "iwex_print_formats.notifications.get_notification_config"
 
 # Permissions
 # -----------
@@ -84,7 +88,7 @@ app_license = "MIT"
 # 		"on_update": "method",
 # 		"on_cancel": "method",
 # 		"on_trash": "method"
-#	}
+#   }
 # }
 
 # Scheduled Tasks
@@ -117,6 +121,6 @@ app_license = "MIT"
 # ------------------------------
 #
 # override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "iwex_print_formats.event.get_events"
+# 	"frappe.desk.doctype.event.event.get_events": \
+# 	 "iwex_print_formats.event.get_events"
 # }
-
