@@ -102,6 +102,9 @@ tr.iwex-table-row-accent th {
 .iwex-text-smaller {
   font-size: 7pt;
 }
+.iwex-footer {
+  padding-top: 4pt;
+}
 .iwex-text-footer-last {
   font-size: 8px;
 }
@@ -123,11 +126,16 @@ tr.iwex-table-row-accent th {
   }
 }
 @media print {
+  .iwex-page {
+    overflow: hidden;
+  }
   .iwex-footer {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 10mm;
+    bottom: 0;
+    padding-bottom: 10mm;
+    background-color: white;
   }
 }
 </style>

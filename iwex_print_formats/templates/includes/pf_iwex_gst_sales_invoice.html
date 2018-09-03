@@ -288,15 +288,19 @@
   </div>
   {% endif %}
 
+  {% if page == num_pages and doc.terms %}
+  <div>
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="iwex-label">Terms &amp; Conditions:</div>
+        <p class="iwex-text-small">{{ doc.terms }}</p>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   <div class="iwex-footer">
     {% if page == num_pages %}
-      {% if doc.terms %}
-      <div class="row iwex-text-small">
-        <div class="col-xs-12">
-          <p><span class="iwex-label">Terms &amp; Conditions</span>: {{ doc.terms }}</p>
-        </div>
-      </div>
-      {% endif %}
       {% set pipe = joiner('|') %}
       <div class="row iwex-text-small">
         <div class="col-xs-12">
