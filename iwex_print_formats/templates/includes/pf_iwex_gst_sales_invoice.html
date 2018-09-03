@@ -339,6 +339,11 @@
       <div class="col-xs-4 text-center">Dated: {{ doc.get_formatted('posting_date') }}</div>
       <div class="col-xs-4 text-right">Page {{ page }} of {{ num_pages }}</div>
     </div>
+    {% if page < num_pages %}
+    <div class="row iwex-screen-hidden iwex-text-footer-last">
+      <div class="col-xs-12 text-right">To be continued in the next page</div>
+    </div>
+    {% endif %}
   </div>
 </div>
 {% endfor %}
