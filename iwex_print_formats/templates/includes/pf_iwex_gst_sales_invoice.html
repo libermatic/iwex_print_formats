@@ -118,15 +118,15 @@
     <table class="table table-bordered">
       <thead>
         <tr>
-          <th width="25pt">#</th>
-          <th>HSN/SAC<br /><span class="iwex-strong">Item Description</span> (Serial No.)</th>
-          <th width="{{ min_col_width_qty }}">Qty<br />UOM</th>
-          <th width="{{ min_col_width_rate }}">Rate<br />Discount</th>
-          <th width="{{ min_col_width_amount }}">Taxable Value</th>
+          <th class="iwex-col-no">#</th>
+          <th class="iwex-col-description">HSN/SAC<br /><span class="iwex-strong">Item Description</span> (Serial No.)</th>
+          <th class="iwex-col-qty">Qty<br />UOM</th>
+          <th class="iwex-col-rate">Rate<br />Discount</th>
+          <th class="iwex-col-amount">Taxable Value</th>
           {% for tax, _ in taxes|dictsort %}
-            <th width="{{ min_col_width_tax }}">{{ tax }}%<br />Amount</th>
+            <th class="iwex-col-tax">{{ tax }}%<br />Amount</th>
           {% endfor %}
-          <th width="{{ min_col_width_amount }}">Gross Amount</th>
+          <th class="iwex-col-total">Gross Amount</th>
         </tr>
         <tr class="iwex-table-row-smalltext iwex-table-row-accent">
           {% for x in range(item_cols) %}
@@ -162,9 +162,11 @@
             {% if item.gst_hsn_code %}
             <span class="iwex-strong">{{ item.gst_hsn_code }}</span><br />
             {% endif %}
-            {{ item.description }}
+            <div class="iwex-description-text">
+              {{ item.description }}
+            </div>
             {% if item.serial_no %}
-            <br/><span class="iwex-text-smaller">({{ item.serial_no.replace('\n', ', ') }})</span>
+            <span class="iwex-text-smaller">({{ item.serial_no.replace('\n', ', ') }})</span>
             {% endif %}
             </td>
             <td class="text-center">{{ item.get_formatted('qty') }}<br />{{ item.uom }}</td>
@@ -248,15 +250,15 @@
     <div class="iwex-label">Tax Breakup:</div>
     <table class="table table-bordered">
       <thead>
-          <th width="25pt">#</th>
         <tr class="iwex-table-row-accent">
+          <th class="iwex-col-no">#</th>
           <th>HSN/SAC</th>
-          <th width="{{ min_col_width_tax }}">Taxable Value</th>
+          <th class="iwex-col-amount">Taxable Value</th>
           {% set labels = ['A', 'B', 'C'] %}
           {% for tax, _ in taxes|dictsort %}
-            <th width="{{ min_col_width_tax }}">{{ tax }} ({{ labels[loop.index0] }})</th>
+            <th  class="iwex-col-tax">{{ tax }} ({{ labels[loop.index0] }})</th>
           {% endfor %}
-          <th width="{{ min_col_width_tax }}">Total ({{ labels[:taxes.keys()|length]|join('+') }})</th>
+          <th  class="iwex-col-amount">Total ({{ labels[:taxes.keys()|length]|join('+') }})</th>
         </tr>
       </thead>
       <tbody>
