@@ -8,14 +8,18 @@
 }
 @media print {
   .print-format {
-    margin-top: 10mm;
-    margin-left: 10mm;
-    margin-right: 10mm;
-    margin-bottom: 10mm;
-    height: {{ page_height }};
+    margin-top: 0mm;
+    margin-left: 0mm;
+    margin-right: 0mm;
+    margin-bottom: 0mm;
   }
   .print-format .iwex-page {
     position: relative;
+    height: {{ page_height or '285mm' }};
+  }
+  .iwex-page {
+    margin: 0 10mm;
+    padding-top: 10mm;
   }
 }
 .iwex-page h1, .iwex-page h2 {
@@ -82,7 +86,7 @@
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: 10mm;
   }
 }
 </style>
