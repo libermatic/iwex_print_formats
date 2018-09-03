@@ -16,13 +16,6 @@
 {% set item_cols = 6 + taxes.keys()|length %}
 {% set tax_cols = 4 + taxes.keys()|length %}
 
-<div id="variables" style="display: none">
-  <span id="margin-top">10mm</span>
-  <span id="margin-left">10mm</span>
-  <span id="margin-right">10mm</span>
-  <span id="margin-bottom">10mm</span>
-</div>
-
 {% set brought_fwd = dict(count=0, amount=0, total=0) %}
 
 {% for page in range(1, num_pages + 1) %}
