@@ -87,6 +87,10 @@ tr.iwex-table-row-accent th {
 .iwex-table-row-smalltext > th {
   font-size: 7pt;
 }
+.iwex-invoice-heading {
+  text-align: right;
+  text-transform: uppercase;
+}
 .iwex-label {
   text-decoration: underline;
 }
@@ -194,6 +198,9 @@ tr.iwex-table-row-accent th {
       </div>
       <div class="col-xs-5 text-right">
         <h2 class="iwex-strong">GST INVOICE {% if doc.status == 'Draft' %}<span class="iwex-text-small iwex-text-regular">(DRAFT)</span>{% endif %}</h2>
+        {% if doc.invoice_copy %}
+        <p class="iwex-invoice-heading">{{ doc.invoice_copy }}</p>
+        {% endif %}
         <p class="iwex-strong"><span class="iwex-label">Invoice ID</span>: {{ doc.name }}</p>
         <p><span class="iwex-label">Invoice Date</span>: {{ doc.get_formatted('posting_date') }}</p>
         <p><span class="iwex-label">Eligible for Reverse GST</span>: {{ 'Yes' if doc.reverse_charge == 'Y' else 'No' }}</p>
