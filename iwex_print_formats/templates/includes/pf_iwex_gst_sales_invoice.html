@@ -17,6 +17,7 @@
 {% set tax_cols = 4 + taxes.keys()|length %}
 
 {% set brought_fwd = dict(count=0, amount=0, total=0) %}
+{% set tax_breakup = dict() %}
 
 {% for page in range(1, num_pages + 1) %}
 <div class="page-break iwex-page">
@@ -178,17 +179,29 @@
                 'count': subtotal.count + 1,
                 'amount': subtotal.amount + item.amount,
             }) %}
+            {% if item.gst_hsn_code %}
+              {% set _ = tax_breakup.setdefault(item.gst_hsn_code, {}) %}
+              {% set _ = tax_breakup[item.gst_hsn_code].update({
+                'taxable': tax_breakup[item.gst_hsn_code].get('taxable', 0) + item.amount,
+              }) %}
+            {% endif %}
             {% set rates = json.loads(item.item_tax_rate) %}
             {% set with_taxes = namespace(amount=item.amount) %}
             {% for tax, rate in taxes|dictsort %}
               <td class="text-right">
-                {% set r = rates|attr(tax ~ ' - ' ~ co_abbr)|default(rate) %}
+                {% set r = rates.get(tax ~ ' - ' ~ co_abbr, rate) %}
                 {{ r }}%
                 <br />
                 {% set tax_amount = item.amount * r / 100 %}
                 {{ frappe.utils.fmt_money(tax_amount, currency=doc.currency) }}
                 {% set with_taxes.amount = with_taxes.amount + tax_amount %}
                 {% set _ = subtotal.update({tax: subtotal.get(tax, 0) + tax_amount}) %}
+                {% if item.gst_hsn_code %}
+                  {% set _ = tax_breakup[item.gst_hsn_code].update({
+                    tax: tax_breakup[item.gst_hsn_code].get(tax, 0) + tax_amount,
+                    'total': tax_breakup[item.gst_hsn_code].get('total', 0) + tax_amount,
+                  }) %}
+                {% endif %}
               </td>
             {% endfor %}
             <td class="text-right">{{ frappe.utils.fmt_money(with_taxes.amount, currency=doc.currency) }}</td>
@@ -240,7 +253,6 @@
       </tbody>
     </table>
   </div>
-
   {% if page == num_pages %}
   <div>
     <div class="iwex-label">Tax Breakup:</div>
@@ -258,25 +270,17 @@
         </tr>
       </thead>
       <tbody>
-        {% for hsn in doc.items|map(attribute='gst_hsn_code')|unique %}
+        {% for hsn, amounts in tax_breakup|dictsort %}
         <tr>
-          {% set var = namespace(amount=0, total=0) %}
           <td class="text-center">{{ loop.index }}</td>
           <td>{{ hsn }}</td>
           <td class="text-right">
-            {{ frappe.utils.fmt_money(doc.items|selectattr('gst_hsn_code', 'equalto', hsn)|sum(attribute='amount'), currency=doc.currency) }}
+            {{ frappe.utils.fmt_money(amounts.get('taxable'), currency=doc.currency) }}
           </td>
-          {% for tax, rate in taxes|dictsort %}
-            {% set var.amount = 0 %}
-            {% for item in doc.items|selectattr('gst_hsn_code', 'equalto', hsn) %}
-              {% set rates = json.loads(item.item_tax_rate) %}
-              {% set r = rates|attr(tax ~ ' - ' ~ co_abbr)|default(rate) %}
-              {% set var.amount = var.amount + item.amount * r / 100 %}
-            {% endfor %}
-            <td class="text-right">{{ frappe.utils.fmt_money(var.amount, currency=doc.currency) }}</td>
-            {% set var.total = var.total + var.amount %}
+          {% for tax, _ in taxes|dictsort %}
+          <td class="text-right">{{ frappe.utils.fmt_money(amounts.get(tax), currency=doc.currency) }}</td>
           {% endfor %}
-          <td class="text-right">{{ frappe.utils.fmt_money(var.total, currency=doc.currency) }}</td>
+          <td class="text-right">{{ frappe.utils.fmt_money(amounts.get('total'), currency=doc.currency) }}</td>
         </tr>
         {% endfor %}
       </tbody>
