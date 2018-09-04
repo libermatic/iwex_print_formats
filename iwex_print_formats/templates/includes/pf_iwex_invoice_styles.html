@@ -52,10 +52,7 @@
   width: {{ col_width_qty or '32pt' }};
 }
 .iwex-col-rate {
-  width: {{ col_width_rate or '55pt' }};
-}
-.iwex-col-amount {
-  width: {{ col_width_amount or '65pt' }};
+  width: {{ col_width_rate or '65pt' }};
 }
 .iwex-col-tax {
   width: {{ col_width_tax or '55pt' }};
@@ -64,7 +61,6 @@
   width: {{ col_width_amount or '75pt' }};
 }
 .iwex-page .table th.text-right, .iwex-page .table td.text-right {
-  white-space: nowrap;
   text-align: right;
 }
 .iwex-page .table tbody td, .iwex-page .table tfoot th {
@@ -73,7 +69,6 @@
 tr.iwex-table-row-accent th {
   font-size: 8pt;
   background-color: #C0C0C0;
-  white-space: nowrap;
 }
 .iwex-table-row-smalltext > th {
   font-size: 7pt;
@@ -87,12 +82,6 @@ tr.iwex-table-row-accent th {
 }
 .iwex-strong {
   font-weight: bold;
-}
-.iwex-description-text {
-  width: 100%;
-  white-space: nowrap;
-  overflow-x: hidden;
-  text-overflow: ellipsis;
 }
 .iwex-text-regular {
   font-weight: normal;
@@ -111,6 +100,9 @@ tr.iwex-table-row-accent th {
 }
 .iwex-text-footer-last {
   font-size: 8px;
+}
+tr.iwex-table-row-ctc > td {
+  font-size: 10pt;
 }
 .iwex-text-larger {
   font-size: 12pt;

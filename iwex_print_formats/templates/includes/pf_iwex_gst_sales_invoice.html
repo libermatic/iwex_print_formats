@@ -13,7 +13,7 @@
   {% endif %}
 {% endfor %}
 
-{% set item_cols = 6 + taxes.keys()|length %}
+{% set item_cols = 5 + taxes.keys()|length %}
 {% set tax_cols = 4 + taxes.keys()|length %}
 
 {% set brought_fwd = dict(count=0, amount=0, total=0) %}
@@ -118,8 +118,7 @@
           <th class="iwex-col-no">#</th>
           <th class="iwex-col-description">HSN/SAC<br /><span class="iwex-strong">Item Description</span> (Serial No.)</th>
           <th class="iwex-col-qty">Qty<br />UOM</th>
-          <th class="iwex-col-rate">Rate<br />Discount</th>
-          <th class="iwex-col-amount">Taxable Value</th>
+          <th class="iwex-col-rate">Rate</th>
           {% for tax, _ in taxes|dictsort %}
             <th class="iwex-col-tax">{{ tax }}%<br />Amount</th>
           {% endfor %}
@@ -134,7 +133,6 @@
         <tr class="iwex-table-row-accent">
           <th>{{ brought_fwd.count }}</th>
           <th>Brought Forward</th>
-          <th></th>
           <th></th>
           <th class="text-right">{{ frappe.utils.fmt_money(brought_fwd.amount, currency=doc.currency) }}</th>
           {% for tax, _ in taxes|dictsort %}
@@ -159,21 +157,13 @@
             {% if item.gst_hsn_code %}
             <span class="iwex-strong">{{ item.gst_hsn_code }}</span><br />
             {% endif %}
-            <div class="iwex-description-text">
-              {{ item.description }}
-            </div>
+            {{ item.description }}
             {% if item.serial_no %}
+            <br />
             <span class="iwex-text-smaller">({{ item.serial_no.replace('\n', ', ') }})</span>
             {% endif %}
             </td>
             <td class="text-center">{{ item.get_formatted('qty') }}<br />{{ item.uom }}</td>
-            <td class="text-right">
-              {% set rate = 'price_list_rate' if item.price_list_rate else 'rate' %}
-              {{ item.get_formatted(rate) }}
-              <br />
-              {{ frappe.utils.fmt_money(item.get(rate) - item.get('rate'), currency=doc.currency) }}
-              <br />
-            </td>
             <td class="text-right">{{ item.get_formatted('amount') }}</td>
             {% set _ = subtotal.update({
                 'count': subtotal.count + 1,
@@ -220,7 +210,6 @@
             <th>{{ subtotal.count }}</th>
             <th>{{ 'Subtotal' if page < num_pages else 'Total' }}</th>
             <th></th>
-            <th></th>
             <th class="text-right">{{ frappe.utils.fmt_money(subtotal.amount, currency=doc.currency) }}</th>
             {% for tax, _ in taxes|dictsort %}
               <th class="text-right">
@@ -240,12 +229,12 @@
           {% if page == num_pages %}
           <tr class="iwex-table-row-accent">
             <td colspan="4" class="text-right">GST Total: {{ doc.get_formatted('total_taxes_and_charges') }}</td>
-            <td colspan="{{ item_cols - 5 }}" class="text-right">Round Off:</td>
+            <td colspan="{{ item_cols - 5 }}">Round Off:</td>
             <td class="text-right">{{ doc.get_formatted('rounding_adjustment') }}</td>
           </tr>
-          <tr class="iwex-table-row-accent">
+          <tr class="iwex-table-row-accent iwex-table-row-ctc">
             <td colspan="4">{{ doc.in_words }}</td>
-            <td colspan="{{ item_cols - 5 }}" class="text-right iwex-strong">Rounded Total:</td>
+            <td colspan="{{ item_cols - 5 }}" class="iwex-strong">Rounded Total:</td>
             <td class="text-right iwex-strong">{{ doc.get_formatted('rounded_total') }}</td>
           </tr>
           {% endif %}
@@ -261,12 +250,12 @@
         <tr class="iwex-table-row-accent">
           <th class="iwex-col-no">#</th>
           <th>HSN/SAC</th>
-          <th class="iwex-col-amount">Taxable Value</th>
+          <th class="iwex-col-rate">Taxable Value</th>
           {% set labels = ['A', 'B', 'C'] %}
           {% for tax, _ in taxes|dictsort %}
-            <th  class="iwex-col-tax">{{ tax }} ({{ labels[loop.index0] }})</th>
+            <th class="iwex-col-tax">{{ tax }} ({{ labels[loop.index0] }})</th>
           {% endfor %}
-          <th  class="iwex-col-amount">Total ({{ labels[:taxes.keys()|length]|join('+') }})</th>
+          <th class="iwex-col-total">Total ({{ labels[:taxes.keys()|length]|join('+') }})</th>
         </tr>
       </thead>
       <tbody>
