@@ -220,7 +220,7 @@ tr.iwex-table-row-ctc > td {
           <p class="col-xs-9">
             <span class="iwex-strong">{{ doc.customer_name }}</span>
             {% if doc.customer_address %}
-            <br />{{ html2text(doc.address_display) }}
+            <br />{{ html2text(doc.address_display or '') }}
             {% endif %}
           </p>
         </div>
@@ -242,14 +242,18 @@ tr.iwex-table-row-ctc > td {
           <p class="col-xs-5 text-right">Shipped To:</p>
           <p class="col-xs-7">{{ html2text(doc.shipping_address or '') }}</p>
         </div>
+        {% if doc.shipping_mode %}
         <div class="row">
           <p class="col-xs-5 text-right">Shipping Mode:</p>
-          <p class="col-xs-7">{{ '' }}</p>
+          <p class="col-xs-7">{{ doc.shipping_mode }}</p>
         </div>
+        {% endif %}
+        {% if doc.vehicle_no %}
         <div class="row">
           <p class="col-xs-5 text-right">Vehicle No:</p>
-          <p class="col-xs-7">{{ '' }}</p>
+          <p class="col-xs-7">{{ doc.vehicle_no }}</p>
         </div>
+        {% endif %}
         <div class="row">
           <p class="col-xs-5 text-right">Place of Supply:</p>
           <p class="col-xs-7">{{ doc.place_of_supply }}</p>
