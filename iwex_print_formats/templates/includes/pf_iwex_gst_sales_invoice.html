@@ -186,9 +186,10 @@
                 {% set with_taxes.amount = with_taxes.amount + tax_amount %}
                 {% set _ = subtotal.update({tax: subtotal.get(tax, 0) + tax_amount}) %}
                 {% if item.gst_hsn_code %}
+                  {% set disc_tax_amount = item.net_amount * r / 100 %}
                   {% set _ = tax_breakup[item.gst_hsn_code].update({
-                    tax: tax_breakup[item.gst_hsn_code].get(tax, 0) + tax_amount,
-                    'total': tax_breakup[item.gst_hsn_code].get('total', 0) + tax_amount,
+                    tax: tax_breakup[item.gst_hsn_code].get(tax, 0) + disc_tax_amount,
+                    'total': tax_breakup[item.gst_hsn_code].get('total', 0) + disc_tax_amount,
                   }) %}
                 {% endif %}
               </td>

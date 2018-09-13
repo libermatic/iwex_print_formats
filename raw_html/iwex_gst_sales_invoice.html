@@ -3,8 +3,8 @@
 {% set bank_details = '[Bank name, branch, account, IFSC]' %}
 {% set payment_methods = 'Strictly as DD / Cheque / Wire Transfer.' %}
 {% set col_width_qty = '32pt' %}
-{% set col_width_rate = '75pt' %}
-{% set col_width_tax = '55pt' %}
+{% set col_width_rate = '65pt' %}
+{% set col_width_tax = '60pt' %}
 {% set col_width_amount = '75pt' %}
 
 <style>
@@ -12,7 +12,7 @@
   .print-format {
     width: 210mm;
     min-height: 297mm;
-    padding: 15mm;
+    padding: 10mm;
   }
 }
 @media print {
@@ -34,6 +34,9 @@
 .iwex-page h1, .iwex-page h2 {
   font-size: 18pt;
   margin: 0;
+}
+.iwex-customer_name {
+  font-size: 12pt;
 }
 .iwex-page p {
   margin: 0;
@@ -64,7 +67,7 @@
   width: {{ col_width_rate or '65pt' }};
 }
 .iwex-col-tax {
-  width: {{ col_width_tax or '55pt' }};
+  width: {{ col_width_tax or '60pt' }};
 }
 .iwex-col-total {
   width: {{ col_width_amount or '75pt' }};
@@ -73,14 +76,21 @@
   text-align: right;
 }
 .iwex-page .table tbody td, .iwex-page .table tfoot th {
-  font-size: 8pt;
+  font-size: 10pt;
 }
 tr.iwex-table-row-accent th {
-  font-size: 8pt;
+  font-size: 7pt;
+  background-color: #C0C0C0;
+}
+tr.iwex-table-row-taxbreakup th {
+  font-size: 10pt;
   background-color: #C0C0C0;
 }
 .iwex-table-row-smalltext > th {
   font-size: 7pt;
+}
+tr.iwex-discount td {
+  background-color: #C0C0C0;
 }
 .iwex-invoice-heading {
   text-align: right;
@@ -99,7 +109,7 @@ tr.iwex-table-row-accent th {
   margin: 4pt 0;
 }
 .iwex-text-small {
-  font-size: 8pt;
+  font-size: 9pt;
 }
 .iwex-text-smaller {
   font-size: 7pt;
@@ -111,7 +121,10 @@ tr.iwex-table-row-accent th {
   font-size: 8px;
 }
 tr.iwex-table-row-ctc > td {
-  font-size: 10pt;
+  font-size: 11pt;
+}
+tr.iwex-table-row-ctc > td .iwex-strong {
+  font-size: 12pt;
 }
 .iwex-text-larger {
   font-size: 12pt;
@@ -176,7 +189,7 @@ tr.iwex-table-row-ctc > td {
         <p><span class="iwex-label">GSTIN</span>: {{ doc.company_gstin }}</p>
         {% endif %}
         {% if doc.company_address %}
-        <p><span class="iwex-label">Address</span>: {{ html2text(doc.company_address_display) }}</p>
+        <p><span class="iwex-label">Address</span>: {{ doc.company_address_display }}</p>
         {% endif %}
         {% set company_phone, company_email, co_abbr = frappe.db.get_value('Company', doc.company, ['phone_no', 'email', 'abbr']) %}
         {% set pipe = joiner('|') %}
@@ -218,23 +231,15 @@ tr.iwex-table-row-ctc > td {
         <div class="row">
           <p class="col-xs-3 text-right">Billed To:</p>
           <p class="col-xs-9">
-            <span class="iwex-strong">{{ doc.customer_name }}</span>
+            <span class="iwex-strong iwex-customer_name">{{ doc.customer_name }}</span>
             {% if doc.customer_address %}
-            <br />{{ html2text(doc.address_display or '') }}
+            <br />{{ doc.address_display }}
             {% endif %}
           </p>
         </div>
         <div class="row iwex-strong">
           <p class="col-xs-3 text-right">GSTIN:</p>
           <p class="col-xs-9">{{ doc.billing_address_gstin }}</p>
-        </div>
-        <div class="row">
-          <p class="col-xs-3 text-right">State:</p>
-          {% set gst_state, gst_state_number, customer_state = frappe.db.get_value('Address', doc.customer_address, ['gst_state', 'gst_state_number', 'state']) %}
-          <p class="col-xs-9">
-            {{ gst_state or customer_state }}
-            {% if gst_state_number %}({{ gst_state_number }}){% endif %}
-          </p>
         </div>
       </div>
       <div class="col-xs-6">
@@ -269,11 +274,11 @@ tr.iwex-table-row-ctc > td {
           <th class="iwex-col-no">#</th>
           <th class="iwex-col-description">HSN/SAC<br /><span class="iwex-strong">Item Description</span> (Serial No.)</th>
           <th class="iwex-col-qty">Qty<br />UOM</th>
-          <th class="iwex-col-rate">Rate</th>
+          <th class="iwex-col-rate">Rate<br />T. Value</th>
           {% for tax, _ in taxes|dictsort %}
-            <th class="iwex-col-tax">{{ tax }}%<br />Amount</th>
+            <th class="iwex-col-tax">{{ tax }} %<br />Amount</th>
           {% endfor %}
-          <th class="iwex-col-total">Gross Amount</th>
+          <th class="iwex-col-total">Gross<br />Amount</th>
         </tr>
         <tr class="iwex-table-row-smalltext iwex-table-row-accent">
           {% for x in range(item_cols) %}
@@ -306,16 +311,19 @@ tr.iwex-table-row-ctc > td {
           <td class="text-center">{{ item.idx }}</td>
           <td>
             {% if item.gst_hsn_code %}
-            <span class="iwex-strong">{{ item.gst_hsn_code }}</span><br />
+            <span class="text-right">[{{ item.gst_hsn_code }}]</span><br />
             {% endif %}
-            {{ item.description }}
+            <span class="iwex-strong">{{ item.description }}</span>
             {% if item.serial_no %}
             <br />
             <span class="iwex-text-smaller">({{ item.serial_no.replace('\n', ', ') }})</span>
             {% endif %}
             </td>
             <td class="text-center">{{ item.get_formatted('qty') }}<br />{{ item.uom }}</td>
-            <td class="text-right">{{ item.get_formatted('amount') }}</td>
+            {% set rate = 'price_list_rate' if item.price_list_rate else 'rate' %}
+            <td class="text-right">
+              {{ item.get_formatted(rate) }}<br />{{ item.get_formatted('amount') }}
+            </td>
             {% set _ = subtotal.update({
                 'count': subtotal.count + 1,
                 'amount': subtotal.amount + item.amount,
@@ -338,9 +346,10 @@ tr.iwex-table-row-ctc > td {
                 {% set with_taxes.amount = with_taxes.amount + tax_amount %}
                 {% set _ = subtotal.update({tax: subtotal.get(tax, 0) + tax_amount}) %}
                 {% if item.gst_hsn_code %}
+                  {% set disc_tax_amount = item.net_amount * r / 100 %}
                   {% set _ = tax_breakup[item.gst_hsn_code].update({
-                    tax: tax_breakup[item.gst_hsn_code].get(tax, 0) + tax_amount,
-                    'total': tax_breakup[item.gst_hsn_code].get('total', 0) + tax_amount,
+                    tax: tax_breakup[item.gst_hsn_code].get(tax, 0) + disc_tax_amount,
+                    'total': tax_breakup[item.gst_hsn_code].get('total', 0) + disc_tax_amount,
                   }) %}
                 {% endif %}
               </td>
@@ -379,14 +388,25 @@ tr.iwex-table-row-ctc > td {
           {% endfor %}
           {% if page == num_pages %}
           <tr class="iwex-table-row-accent">
-            <td colspan="4" class="text-right">GST Total: {{ doc.get_formatted('total_taxes_and_charges') }}</td>
-            <td colspan="{{ item_cols - 5 }}">Round Off:</td>
-            <td class="text-right">{{ doc.get_formatted('rounding_adjustment') }}</td>
+            <td colspan="3" class="text-center">
+              Round Off: {{ doc.get_formatted('rounding_adjustment') }}
+            </td>
+            <td colspan="{{ item_cols - 3 }}" class="text-center">
+              GST Total: {{ doc.get_formatted('total_taxes_and_charges') }}
+            </td>
           </tr>
+          {%- if doc.discount_amount -%}
+          <tr class="iwex-table-row-accent iwex-table-row-ctc iwex-discount">
+          	<td colspan="{{ item_cols }}" class="text-center">
+              Less additional Discount: {{ doc.get_formatted("discount_amount") }}
+            </td>
+          </tr>
+          {%- endif -%}
           <tr class="iwex-table-row-accent iwex-table-row-ctc">
-            <td colspan="4">{{ doc.in_words }}</td>
-            <td colspan="{{ item_cols - 5 }}" class="iwex-strong">Rounded Total:</td>
-            <td class="text-right iwex-strong">{{ doc.get_formatted('rounded_total') }}</td>
+            <td colspan="{{ item_cols }}" class="text-center">
+              Grand Total: <span class="iwex-strong">{{ doc.get_formatted('rounded_total') }}</span><br />
+              ({{ doc.in_words }})
+            </td>
           </tr>
           {% endif %}
         </tfoot>
@@ -398,7 +418,7 @@ tr.iwex-table-row-ctc > td {
     <div class="iwex-label">Tax Breakup:</div>
     <table class="table table-bordered">
       <thead>
-        <tr class="iwex-table-row-accent">
+        <tr class="iwex-table-row-taxbreakup">
           <th class="iwex-col-no">#</th>
           <th>HSN/SAC</th>
           <th class="iwex-col-rate">Taxable Value</th>
