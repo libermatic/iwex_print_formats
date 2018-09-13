@@ -3,7 +3,7 @@
   .print-format {
     width: 210mm;
     min-height: 297mm;
-    padding: 15mm;
+    padding: 10mm;
   }
 }
 @media print {
@@ -25,6 +25,9 @@
 .iwex-page h1, .iwex-page h2 {
   font-size: 18pt;
   margin: 0;
+}
+.iwex-customer_name {
+  font-size: 12pt;
 }
 .iwex-page p {
   margin: 0;
@@ -55,7 +58,7 @@
   width: {{ col_width_rate or '65pt' }};
 }
 .iwex-col-tax {
-  width: {{ col_width_tax or '55pt' }};
+  width: {{ col_width_tax or '60pt' }};
 }
 .iwex-col-total {
   width: {{ col_width_amount or '75pt' }};
@@ -64,14 +67,21 @@
   text-align: right;
 }
 .iwex-page .table tbody td, .iwex-page .table tfoot th {
-  font-size: 8pt;
+  font-size: 10pt;
 }
 tr.iwex-table-row-accent th {
-  font-size: 8pt;
+  font-size: 7pt;
+  background-color: #C0C0C0;
+}
+tr.iwex-table-row-taxbreakup th {
+  font-size: 10pt;
   background-color: #C0C0C0;
 }
 .iwex-table-row-smalltext > th {
   font-size: 7pt;
+}
+tr.iwex-discount td {
+  background-color: #C0C0C0;
 }
 .iwex-invoice-heading {
   text-align: right;
@@ -90,7 +100,7 @@ tr.iwex-table-row-accent th {
   margin: 4pt 0;
 }
 .iwex-text-small {
-  font-size: 8pt;
+  font-size: 9pt;
 }
 .iwex-text-smaller {
   font-size: 7pt;
@@ -102,7 +112,10 @@ tr.iwex-table-row-accent th {
   font-size: 8px;
 }
 tr.iwex-table-row-ctc > td {
-  font-size: 10pt;
+  font-size: 11pt;
+}
+tr.iwex-table-row-ctc > td .iwex-strong {
+  font-size: 12pt;
 }
 .iwex-text-larger {
   font-size: 12pt;
