@@ -29,7 +29,7 @@
         <p><span class="iwex-label">GSTIN</span>: {{ doc.company_gstin }}</p>
         {% endif %}
         {% if doc.company_address %}
-        <p><span class="iwex-label">Address</span>: {{ html2text(doc.company_address_display) }}</p>
+        <p><span class="iwex-label">Address</span>: {{ doc.company_address_display }}</p>
         {% endif %}
         {% set company_phone, company_email, co_abbr = frappe.db.get_value('Company', doc.company, ['phone_no', 'email', 'abbr']) %}
         {% set pipe = joiner('|') %}
@@ -71,23 +71,15 @@
         <div class="row">
           <p class="col-xs-3 text-right">Billed To:</p>
           <p class="col-xs-9">
-            <span class="iwex-strong">{{ doc.customer_name }}</span>
+            <span class="iwex-strong iwex-customer_name">{{ doc.customer_name }}</span>
             {% if doc.customer_address %}
-            <br />{{ html2text(doc.address_display or '') }}
+            <br />{{ doc.address_display }}
             {% endif %}
           </p>
         </div>
         <div class="row iwex-strong">
           <p class="col-xs-3 text-right">GSTIN:</p>
           <p class="col-xs-9">{{ doc.billing_address_gstin }}</p>
-        </div>
-        <div class="row">
-          <p class="col-xs-3 text-right">State:</p>
-          {% set gst_state, gst_state_number, customer_state = frappe.db.get_value('Address', doc.customer_address, ['gst_state', 'gst_state_number', 'state']) %}
-          <p class="col-xs-9">
-            {{ gst_state or customer_state }}
-            {% if gst_state_number %}({{ gst_state_number }}){% endif %}
-          </p>
         </div>
       </div>
       <div class="col-xs-6">
@@ -122,11 +114,11 @@
           <th class="iwex-col-no">#</th>
           <th class="iwex-col-description">HSN/SAC<br /><span class="iwex-strong">Item Description</span> (Serial No.)</th>
           <th class="iwex-col-qty">Qty<br />UOM</th>
-          <th class="iwex-col-rate">Rate</th>
+          <th class="iwex-col-rate">Rate<br />T. Value</th>
           {% for tax, _ in taxes|dictsort %}
-            <th class="iwex-col-tax">{{ tax }}%<br />Amount</th>
+            <th class="iwex-col-tax">{{ tax }} %<br />Amount</th>
           {% endfor %}
-          <th class="iwex-col-total">Gross Amount</th>
+          <th class="iwex-col-total">Gross<br />Amount</th>
         </tr>
         <tr class="iwex-table-row-smalltext iwex-table-row-accent">
           {% for x in range(item_cols) %}
@@ -159,16 +151,19 @@
           <td class="text-center">{{ item.idx }}</td>
           <td>
             {% if item.gst_hsn_code %}
-            <span class="iwex-strong">{{ item.gst_hsn_code }}</span><br />
+            <span class="text-right">[{{ item.gst_hsn_code }}]</span><br />
             {% endif %}
-            {{ item.description }}
+            <span class="iwex-strong">{{ item.description }}</span>
             {% if item.serial_no %}
             <br />
             <span class="iwex-text-smaller">({{ item.serial_no.replace('\n', ', ') }})</span>
             {% endif %}
             </td>
             <td class="text-center">{{ item.get_formatted('qty') }}<br />{{ item.uom }}</td>
-            <td class="text-right">{{ item.get_formatted('amount') }}</td>
+            {% set rate = 'price_list_rate' if item.price_list_rate else 'rate' %}
+            <td class="text-right">
+              {{ item.get_formatted(rate) }}<br />{{ item.get_formatted('amount') }}
+            </td>
             {% set _ = subtotal.update({
                 'count': subtotal.count + 1,
                 'amount': subtotal.amount + item.amount,
@@ -232,14 +227,25 @@
           {% endfor %}
           {% if page == num_pages %}
           <tr class="iwex-table-row-accent">
-            <td colspan="4" class="text-right">GST Total: {{ doc.get_formatted('total_taxes_and_charges') }}</td>
-            <td colspan="{{ item_cols - 5 }}">Round Off:</td>
-            <td class="text-right">{{ doc.get_formatted('rounding_adjustment') }}</td>
+            <td colspan="3" class="text-center">
+              Round Off: {{ doc.get_formatted('rounding_adjustment') }}
+            </td>
+            <td colspan="{{ item_cols - 3 }}" class="text-center">
+              GST Total: {{ doc.get_formatted('total_taxes_and_charges') }}
+            </td>
           </tr>
+          {%- if doc.discount_amount -%}
+          <tr class="iwex-table-row-accent iwex-table-row-ctc iwex-discount">
+          	<td colspan="{{ item_cols }}" class="text-center">
+              Less additional Discount: {{ doc.get_formatted("discount_amount") }}
+            </td>
+          </tr>
+          {%- endif -%}
           <tr class="iwex-table-row-accent iwex-table-row-ctc">
-            <td colspan="4">{{ doc.in_words }}</td>
-            <td colspan="{{ item_cols - 5 }}" class="iwex-strong">Rounded Total:</td>
-            <td class="text-right iwex-strong">{{ doc.get_formatted('rounded_total') }}</td>
+            <td colspan="{{ item_cols }}" class="text-center">
+              Grand Total: <span class="iwex-strong">{{ doc.get_formatted('rounded_total') }}</span><br />
+              ({{ doc.in_words }})
+            </td>
           </tr>
           {% endif %}
         </tfoot>
@@ -251,7 +257,7 @@
     <div class="iwex-label">Tax Breakup:</div>
     <table class="table table-bordered">
       <thead>
-        <tr class="iwex-table-row-accent">
+        <tr class="iwex-table-row-taxbreakup">
           <th class="iwex-col-no">#</th>
           <th>HSN/SAC</th>
           <th class="iwex-col-rate">Taxable Value</th>
