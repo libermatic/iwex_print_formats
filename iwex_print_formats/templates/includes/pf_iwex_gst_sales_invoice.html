@@ -303,19 +303,6 @@
 </div>
 <div class="iwex-footer">
   {% if page == num_pages %}
-  {% set pipe = joiner('|') %}
-  <div class="row iwex-text-small">
-    <div class="col-xs-12">
-      <p>
-        {% if bank_details %} {{ pipe() }}
-        <span class="iwex-label">Bank Details</span>: {{ bank_details }}
-        {% endif %}
-        {% if payment_methods %} {{ pipe() }}
-        <span class="iwex-label">Payment</span>: {{ payment_methods }}
-        {% endif %}
-      </p>
-    </div>
-  </div>
   <hr class="iwex-hr-thin" />
   <div class="row iwex-aside iwex-text-smaller">
     <div class="col-xs-4">
