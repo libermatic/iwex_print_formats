@@ -25,12 +25,15 @@
 .iwex-footer {
   font-size: 6pt;
 }
-.iwex-customer_name {
-  font-size: 12pt;
+.iwex-section {
+  margin-bottom: 4pt;
 }
-.iwex-page p {
+.iwex-section * {
   margin: 0;
   line-height: 1.3;
+}
+.iwex-customer_name {
+  font-size: 12pt;
 }
 .iwex-page .table {
   margin: 4pt 0;
@@ -40,6 +43,11 @@
 .iwex-page .table th, .iwex-page .table td {
   padding: 2pt 4pt !important;
   line-height: 1.3;
+}
+.iwex-page .table tbody th, .iwex-page .table tbody td,
+.iwex-page .table tfoot th, .iwex-page .table tfoot td {
+  height: 3em;
+  vertical-align: middle !important;
 }
 .iwex-page .table th {
   font-weight: normal;
@@ -102,9 +110,6 @@ tr.iwex-discount td {
 .iwex-text-smaller {
   font-size: 7pt;
 }
-.iwex-footer {
-  padding-top: 4pt;
-}
 .iwex-text-footer-last {
   font-size: 8px;
 }
@@ -134,14 +139,6 @@ tr.iwex-table-row-ctc > td .iwex-strong {
 @media print {
   .iwex-page {
     overflow: hidden;
-  }
-  .iwex-footer {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding-bottom: 10mm;
-    background-color: white;
   }
 }
 </style>
