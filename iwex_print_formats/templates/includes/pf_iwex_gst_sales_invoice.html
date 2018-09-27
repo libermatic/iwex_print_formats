@@ -4,7 +4,7 @@
   'Company', doc.company, ['phone_no', 'email', 'abbr']
 ) %}
 
-<div id="header-html" class="iwex-page">
+<div id="header-html">
   <div class="row iwex-header">
     <div class="col-xs-7">
       <h1 class="iwex-strong">{{ doc.company }}</h1>
@@ -36,7 +36,6 @@
     </div>
   </div>
   {% if doc.po_no %}
-  <hr class="iwex-hr-thin" />
   <div class="row iwex-header iwex-bg-accent iwex-po-row">
     <div class="col-xs-6 text-center">
       <span class="iwex-label">PO ID</span>: {{ doc.po_no }}
@@ -46,7 +45,6 @@
     </div>
   </div>
   {% endif %}
-  <hr class="iwex-hr-thin" />
 </div>
 
 {% set gst_taxes = ['CGST', 'SGST', 'IGST'] %}
@@ -66,8 +64,8 @@
 
 {% for page in range(1, num_pages + 1) %}
 <div class="page-break iwex-page">
-  {% if brought_fwd.count > 0 %}
-  <div class="row">
+  {% if page > 1 %}
+  <div class="row iwex-screen-hidden">
     <div class="col-xs-12 text-right">
       Continuation of the previous page...
     </div>
@@ -94,7 +92,7 @@
       <div class="col-xs-6">
         <div class="row">
           <p class="col-xs-5 text-right">Shipped To:</p>
-          <p class="col-xs-7">{{ html2text(doc.shipping_address or '') }}</p>
+          <p class="col-xs-7">{{ doc.shipping_address or doc.address_display }}</p>
         </div>
         {% if doc.shipping_mode %}
         <div class="row">
@@ -116,7 +114,7 @@
     </div>
   </div>
 
-  <table class="table table-bordered">
+  <table class="table table-bordered iwex-table">
     <thead>
       <tr>
         <th class="iwex-col-no">#</th>
@@ -260,13 +258,9 @@
       </tfoot>
     </tbody>
   </table>
-
-</div>
-{% endfor %}
-
-<div class="iwex-section">
-  <div class="iwex-label">Tax Breakup:</div>
+  {% if page == num_pages %}
   <table class="table table-bordered">
+    <caption class="iwex-label">Tax Breakup:</caption>
     <thead>
       <tr class="iwex-table-row-taxbreakup">
         <th class="iwex-col-no">#</th>
@@ -295,44 +289,51 @@
       {% endfor %}
     </tbody>
   </table>
-</div>
+  {% endif %}
 
-{% if doc.terms %}
-<div class="iwex-section row">
-  <div class="col-xs-12">
-    <div class="iwex-label">Terms &amp; Conditions:</div>
-    <p class="iwex-text-small">{{ doc.terms }}</p>
-  </div>
-</div>
-{% endif %}
-
-<hr class="iwex-hr-thin" />
-<div class="row iwex-aside iwex-text-smaller">
-  <div class="col-xs-4">
-    <p>Received goods in Good Condition</p>
-    <br /><br />
-    <p>Name, Mobile &amp; Signature of the receiver.</p>
-  </div>
-  <div class="col-xs-4 text-center iwex-text-small">
-    <div class="iwex-strong iwex-text-larger">Thank You</div>
-    <p>for being our Customer.<br />Look forward to serve you again.</p>
-  </div>
-  <div class="col-xs-4">
-    <p>Prepared by: {{ frappe.db.get_value("User", frappe.user, "first_name") }}</p>
-    <br /><br />
-    <p class="text-right">Company Stamp &amp; Signature</p>
-  </div>
-</div>
-<div id="footer-html" class="iwex-screen-hidden">
-  <hr class="iwex-hr-thin iwex-screen-hidden" />
-  <div class="row iwex-footer">
-    <div class="col-xs-12 text-center">
-      <span class="iwex-label">NB</span>: Company Stamp or Signature not required, if this document has received by email.
+  {% if doc.terms and page == num_pages %}
+  <div class="iwex-section row iwex-terms">
+    <div class="col-xs-12">
+      <div class="iwex-label">Terms &amp; Conditions:</div>
+      <p class="iwex-text-small">{{ doc.terms }}</p>
     </div>
   </div>
-  <div class="row iwex-footer">
-    <div class="col-xs-4 text-left">GST Invoice: {{ doc.name }}</div>
-    <div class="col-xs-4 text-center">Dated: {{ doc.get_formatted('posting_date') }}</div>
-    <div class="col-xs-4 text-right">Page <span class="page"></span> of <span class="topage"></span></div>
+  {% endif %}
+
+  {% if page == num_pages %}
+  <hr class="iwex-hr-thin" />
+  <div class="row iwex-aside iwex-text-smaller">
+    <div class="col-xs-4">
+      <p>Received goods in Good Condition</p>
+      <br /><br />
+      <p>Name, Mobile &amp; Signature of the receiver.</p>
+    </div>
+    <div class="col-xs-4 text-center iwex-text-small">
+      <div class="iwex-strong iwex-text-larger">Thank You</div>
+      <p>for being our Customer.<br />Look forward to serve you again.</p>
+    </div>
+    <div class="col-xs-4">
+      <p>Prepared by: {{ frappe.db.get_value("User", frappe.user, "first_name") }}</p>
+      <br /><br />
+      <p class="text-right">Company Stamp &amp; Signature</p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endfor %}
+
+<div id="footer-html">
+  <div class="iwex-footer visible-pdf">
+    <hr class="iwex-hr-thin" />
+    <div class="row">
+      <div class="col-xs-12 text-center">
+        <span class="iwex-label">NB</span>: Company Stamp or Signature not required, if this document has received by email.
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-4 text-left">GST Invoice: {{ doc.name }}</div>
+      <div class="col-xs-4 text-center">Dated: {{ doc.get_formatted('posting_date') }}</div>
+      <div class="col-xs-4 text-right">Page <span class="page"></span> of <span class="topage"></span></div>
+    </div>
   </div>
 </div>

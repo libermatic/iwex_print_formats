@@ -9,11 +9,15 @@
 /* mm as mmmmm because frappe.utils.pdf.read_options_from_html */
 @media print {
   .print-format {
-    margin-top: {{ (header_height or 10) + 10 if doc.po_no else 0 }}mmmm;
+    margin-top: {{ (header_height or 10) + (6 if doc.po_no else 0) }}mmmm;
     margin-left: {{ side_margin or 10 }}mmmm;
     margin-right: {{ side_margin or 10 }}mmmm;
     margin-bottom: {{ footer_height or 10 }}mmmm;
   }
+}
+.iwex-header {
+  padding-bottom: 4pt;
+  border-bottom: 1px solid #000000;
 }
 .iwex-header h1, .iwex-header h2 {
   font-size: 18pt;
@@ -23,6 +27,8 @@
   line-height: 1.3;
 }
 .iwex-footer {
+  /* reset hardcoded value: copied frappe/templates/print_formats/pdf_header_footer.html */
+  margin-top: -15mm;
   font-size: 6pt;
 }
 .iwex-section {
@@ -35,19 +41,25 @@
 .iwex-customer_name {
   font-size: 12pt;
 }
+.iwex-page {
+  margin: 0;
+  padding: 0;
+}
 .iwex-page .table {
   margin: 4pt 0;
   table-layout: fixed;
   width: 100%;
+  page-break-inside: avoid;
 }
 .iwex-page .table th, .iwex-page .table td {
   padding: 2pt 4pt !important;
   line-height: 1.3;
   vertical-align: middle !important;
 }
-.iwex-page .table tbody th, .iwex-page .table tbody td,
-.iwex-page .table tfoot th, .iwex-page .table tfoot td {
-  height: 3em;
+.iwex-page .iwex-table tbody th, .iwex-page .iwex-table tbody td {
+  height: 3.6em;
+  border-top: none !important;
+  border-bottom: none !important;
 }
 .iwex-page .table th {
   font-weight: normal;
@@ -95,6 +107,9 @@ tr.iwex-discount td {
 .iwex-label {
   text-decoration: underline;
 }
+caption.iwex-label {
+  padding: 0 0 3px;
+}
 .iwex-strong {
   font-weight: bold;
 }
@@ -109,9 +124,6 @@ tr.iwex-discount td {
 }
 .iwex-text-smaller {
   font-size: 7pt;
-}
-.iwex-text-footer-last {
-  font-size: 8px;
 }
 tr.iwex-table-row-ctc > td {
   font-size: 11pt;
@@ -129,16 +141,10 @@ tr.iwex-table-row-ctc > td .iwex-strong {
 .iwex-po-row {
   background-color: #C0C0C0;
   padding: 2pt 0;
-  margin: -4pt 0;
 }
 @media screen {
   .iwex-screen-hidden {
     display: none;
-  }
-}
-@media print {
-  .iwex-page {
-    overflow: hidden;
   }
 }
 </style>
