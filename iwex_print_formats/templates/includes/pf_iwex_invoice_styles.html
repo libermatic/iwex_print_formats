@@ -6,16 +6,13 @@
     padding: 10mm;
   }
 }
+/* mm as mmmmm because frappe.utils.pdf.read_options_from_html */
 @media print {
   .print-format {
-    margin-top: {{ header_height or '10mm' }}mm;
-    margin-left: {{ side_margin or '10mm' }}mm;
-    margin-right: {{ side_margin or '10mm' }}mm;
-    margin-bottom: {{ footer_height or '10mm' }}mm;
-  }
-  .print-format .iwex-page {
-    position: relative;
-    height: {{ page_height or '285mm' }};
+    margin-top: {{ (header_height or 10) + 10 if doc.po_no else 0 }}mmmm;
+    margin-left: {{ side_margin or 10 }}mmmm;
+    margin-right: {{ side_margin or 10 }}mmmm;
+    margin-bottom: {{ footer_height or 10 }}mmmm;
   }
 }
 .iwex-header h1, .iwex-header h2 {
