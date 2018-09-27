@@ -167,7 +167,7 @@
           <span class="iwex-text-smaller">({{ item.serial_no.replace('\n', ', ') }})</span>
           {% endif %}
         </td>
-        <td class="text-center align-middle">{{ item.get_formatted('qty') }}<br />{{ item.uom }}</td>
+        <td class="text-center">{{ item.get_formatted('qty') }}<br />{{ item.uom }}</td>
         {% set rate = 'price_list_rate' if item.price_list_rate else 'rate' %}
         <td class="text-right">
           {{ item.get_formatted(rate) }}<br />{{ item.get_formatted('amount') }}
