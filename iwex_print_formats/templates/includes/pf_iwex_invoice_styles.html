@@ -8,23 +8,25 @@
 }
 @media print {
   .print-format {
-    margin-top: 0mm;
-    margin-left: 0mm;
-    margin-right: 0mm;
-    margin-bottom: 0mm;
+    margin-top: {{ header_height or '10mm' }}mm;
+    margin-left: {{ side_margin or '10mm' }}mm;
+    margin-right: {{ side_margin or '10mm' }}mm;
+    margin-bottom: {{ footer_height or '10mm' }}mm;
   }
   .print-format .iwex-page {
     position: relative;
     height: {{ page_height or '285mm' }};
   }
-  .iwex-page {
-    margin: 0 10mm;
-    padding-top: 10mm;
-  }
 }
-.iwex-page h1, .iwex-page h2 {
+.iwex-header h1, .iwex-header h2 {
   font-size: 18pt;
+}
+.iwex-header h1, .iwex-header h2, .iwex-header p {
   margin: 0;
+  line-height: 1.3;
+}
+.iwex-footer {
+  font-size: 6pt;
 }
 .iwex-customer_name {
   font-size: 12pt;
@@ -83,7 +85,6 @@ tr.iwex-discount td {
   background-color: #C0C0C0;
 }
 .iwex-invoice-heading {
-  text-align: right;
   text-transform: uppercase;
 }
 .iwex-label {
