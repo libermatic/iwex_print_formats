@@ -1,11 +1,14 @@
-{% set page_height = '290mm' %}
 {% set num_item_rows = 8 %}
-{% set bank_details = '[Bank name, branch, account, IFSC]' %}
-{% set payment_methods = 'Strictly as DD / Cheque / Wire Transfer.' %}
-{% set col_width_qty = '32pt' %}
-{% set col_width_rate = '65pt' %}
-{% set col_width_tax = '60pt' %}
+{% set col_width_qty = '35pt' %}
+{% set col_width_rate = '75pt' %}
+{% set col_width_tax = '65pt' %}
 {% set col_width_amount = '75pt' %}
+{% set prev_page_indicator = False %} <!-- True | False -->
+
+<!-- margins and heights in 'mm -->
+{% set header_height = 38 %}
+{% set side_margin = 10 %}
+{% set footer_height = 18 %}
 
 <style>
 @media screen {
@@ -15,41 +18,48 @@
     padding: 10mm;
   }
 }
+/* mm as mmmmm because frappe.utils.pdf.read_options_from_html */
 @media print {
   .print-format {
-    margin-top: 0mm;
-    margin-left: 0mm;
-    margin-right: 0mm;
-    margin-bottom: 0mm;
-  }
-  .print-format .iwex-page {
-    position: relative;
-    height: {{ page_height or '285mm' }};
-  }
-  .iwex-page {
-    margin: 0 10mm;
-    padding-top: 10mm;
+    margin-top: {{ (header_height or 10) + (6 if doc.po_no else 0) }}mmmm;
+    margin-left: {{ side_margin or 10 }}mmmm;
+    margin-right: {{ side_margin or 10 }}mmmm;
+    margin-bottom: {{ footer_height or 10 }}mmmm;
   }
 }
-.iwex-page h1, .iwex-page h2 {
+.iwex-header {
+  padding-bottom: 4pt;
+  border-bottom: 1px solid #000000;
+}
+.iwex-header h1, .iwex-header h2 {
   font-size: 18pt;
+}
+.iwex-header h1, .iwex-header h2, .iwex-header p {
   margin: 0;
+  line-height: 1.3;
+}
+.iwex-footer {
+  /* reset hardcoded value: copied frappe/templates/print_formats/pdf_header_footer.html */
+  margin-top: -15mm;
+  font-size: 6pt;
 }
 .iwex-customer_name {
   font-size: 12pt;
 }
-.iwex-page p {
+.iwex-page {
   margin: 0;
-  line-height: 1.3;
+  padding: 0;
 }
 .iwex-page .table {
   margin: 4pt 0;
   table-layout: fixed;
   width: 100%;
+  page-break-inside: avoid;
 }
 .iwex-page .table th, .iwex-page .table td {
   padding: 2pt 4pt !important;
   line-height: 1.3;
+  vertical-align: middle !important;
 }
 .iwex-page .table th {
   font-weight: normal;
@@ -61,13 +71,13 @@
 .iwex-col-description {
 }
 .iwex-col-qty {
-  width: {{ col_width_qty or '32pt' }};
+  width: {{ col_width_qty or '35pt' }};
 }
 .iwex-col-rate {
-  width: {{ col_width_rate or '65pt' }};
+  width: {{ col_width_rate or '75pt' }};
 }
 .iwex-col-tax {
-  width: {{ col_width_tax or '60pt' }};
+  width: {{ col_width_tax or '65pt' }};
 }
 .iwex-col-total {
   width: {{ col_width_amount or '75pt' }};
@@ -78,26 +88,32 @@
 .iwex-page .table tbody td, .iwex-page .table tfoot th {
   font-size: 10pt;
 }
+.iwex-page .iwex-table tbody td {
+  height: 3.6em;
+  border-top: none !important;
+  border-bottom: none !important;
+}
 tr.iwex-table-row-accent th {
-  font-size: 7pt;
   background-color: #C0C0C0;
 }
 tr.iwex-table-row-taxbreakup th {
   font-size: 10pt;
   background-color: #C0C0C0;
 }
-.iwex-table-row-smalltext > th {
+tr.iwex-table-row-smalltext > th {
   font-size: 7pt;
 }
 tr.iwex-discount td {
   background-color: #C0C0C0;
 }
 .iwex-invoice-heading {
-  text-align: right;
   text-transform: uppercase;
 }
 .iwex-label {
   text-decoration: underline;
+}
+caption.iwex-label {
+  padding: 0 0 3px;
 }
 .iwex-strong {
   font-weight: bold;
@@ -113,12 +129,6 @@ tr.iwex-discount td {
 }
 .iwex-text-smaller {
   font-size: 7pt;
-}
-.iwex-footer {
-  padding-top: 4pt;
-}
-.iwex-text-footer-last {
-  font-size: 8px;
 }
 tr.iwex-table-row-ctc > td {
   font-size: 11pt;
@@ -136,25 +146,21 @@ tr.iwex-table-row-ctc > td .iwex-strong {
 .iwex-po-row {
   background-color: #C0C0C0;
   padding: 2pt 0;
-  margin: -4pt 0;
+}
+.iwex-line {
+  display: block;
 }
 @media screen {
   .iwex-screen-hidden {
     display: none;
   }
 }
-@media print {
-  .iwex-page {
-    overflow: hidden;
-  }
-  .iwex-footer {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding-bottom: 10mm;
-    background-color: white;
-  }
+.iwex-terms {
+  margin-bottom: 4pt;
+}
+.iwex-terms * {
+  margin: 0;
+  line-height: 1.3;
 }
 </style>
 
@@ -163,6 +169,49 @@ tr.iwex-table-row-ctc > td .iwex-strong {
 {% set company_phone, company_email, co_abbr = frappe.db.get_value(
   'Company', doc.company, ['phone_no', 'email', 'abbr']
 ) %}
+
+<div id="header-html">
+  <div class="row iwex-header">
+    <div class="col-xs-7">
+      <h1 class="iwex-strong">{{ doc.company }}</h1>
+      {% if doc.company_gstin %}
+      <p><span class="iwex-label">GSTIN</span>: {{ doc.company_gstin }}</p>
+      {% endif %}
+      {% if doc.company_address %}
+      <p><span class="iwex-label">Address</span>: {{ doc.company_address_display }}</p>
+      {% endif %}
+      {% set company_phone, company_email, co_abbr = frappe.db.get_value('Company', doc.company, ['phone_no', 'email', 'abbr']) %}
+      {% set pipe = joiner('|') %}
+      <p>
+        {% if company_phone %} {{ pipe() }}
+        <span class="iwex-label">Phone</span>: {{ company_phone }}
+        {% endif %}
+        {% if company_email %} {{ pipe() }}
+        <span class="iwex-label">Email</span>: {{ company_email }}
+        {% endif %}
+      </p>
+    </div>
+    <div class="col-xs-5 text-right">
+      <h2 class="iwex-strong">GST INVOICE {% if doc.status == 'Draft' %}<span class="iwex-text-small iwex-text-regular">(DRAFT)</span>{% endif %}</h2>
+      {% if doc.invoice_copy %}
+      <p class="iwex-invoice-heading">{{ doc.invoice_copy }}</p>
+      {% endif %}
+      <p class="iwex-strong"><span class="iwex-label">Invoice ID</span>: {{ doc.name }}</p>
+      <p><span class="iwex-label">Invoice Date</span>: {{ doc.get_formatted('posting_date') }}</p>
+      <p><span class="iwex-label">Eligible for Reverse GST</span>: {{ 'Yes' if doc.reverse_charge == 'Y' else 'No' }}</p>
+    </div>
+  </div>
+  {% if doc.po_no %}
+  <div class="row iwex-header iwex-bg-accent iwex-po-row">
+    <div class="col-xs-6 text-center">
+      <span class="iwex-label">PO ID</span>: {{ doc.po_no }}
+    </div>
+    <div class="col-xs-6 text-center">
+      <span class="iwex-label">PO Date</span>: {{ doc.get_formatted('po_date') }}
+    </div>
+  </div>
+  {% endif %}
+</div>
 
 {% set gst_taxes = ['CGST', 'SGST', 'IGST'] %}
 {% set taxes = dict() %}
@@ -181,51 +230,15 @@ tr.iwex-table-row-ctc > td .iwex-strong {
 
 {% for page in range(1, num_pages + 1) %}
 <div class="page-break iwex-page">
-  <div class="iwex-header{{ ' iwex-screen-hidden' if page > 1 else '' }}">
-    <div class="row">
-      <div class="col-xs-7">
-        <h1 class="iwex-strong">{{ doc.company }}</h1>
-        {% if doc.company_gstin %}
-        <p><span class="iwex-label">GSTIN</span>: {{ doc.company_gstin }}</p>
-        {% endif %}
-        {% if doc.company_address %}
-        <p><span class="iwex-label">Address</span>: {{ doc.company_address_display }}</p>
-        {% endif %}
-        {% set company_phone, company_email, co_abbr = frappe.db.get_value('Company', doc.company, ['phone_no', 'email', 'abbr']) %}
-        {% set pipe = joiner('|') %}
-        <p>
-          {% if company_phone %} {{ pipe() }}
-          <span class="iwex-label">Phone</span>: {{ company_phone }}
-          {% endif %}
-          {% if company_email %} {{ pipe() }}
-          <span class="iwex-label">Email</span>: {{ company_email }}
-          {% endif %}
-        </p>
-      </div>
-      <div class="col-xs-5 text-right">
-        <h2 class="iwex-strong">GST INVOICE {% if doc.status == 'Draft' %}<span class="iwex-text-small iwex-text-regular">(DRAFT)</span>{% endif %}</h2>
-        {% if doc.invoice_copy %}
-        <p class="iwex-invoice-heading">{{ doc.invoice_copy }}</p>
-        {% endif %}
-        <p class="iwex-strong"><span class="iwex-label">Invoice ID</span>: {{ doc.name }}</p>
-        <p><span class="iwex-label">Invoice Date</span>: {{ doc.get_formatted('posting_date') }}</p>
-        <p><span class="iwex-label">Eligible for Reverse GST</span>: {{ 'Yes' if doc.reverse_charge == 'Y' else 'No' }}</p>
-      </div>
+  {% if prev_page_indicator and page > 1 %}
+  <div class="row iwex-screen-hidden">
+    <div class="col-xs-12 text-right">
+      Continuation of the previous page...
     </div>
-    <hr class="iwex-hr-thin" />
   </div>
-  <div{{ ' class="iwex-screen-hidden"' if page > 1 else '' }}>
-    {% if doc.po_no %}
-    <div class="row iwex-bg-accent iwex-po-row">
-      <div class="col-xs-6 text-center">
-        <span class="iwex-label">PO ID</span>: {{ doc.po_no }}
-      </div>
-      <div class="col-xs-6 text-center">
-        <span class="iwex-label">PO Date</span>: {{ doc.get_formatted('po_date') }}
-      </div>
-    </div>
-    <hr class="iwex-hr-thin" />
-    {% endif %}
+  <hr class="iwex-hr-thin" />
+  {% endif %}
+  <div class="{{ 'iwex-screen-hidden' if page > 1 else '' }}">
     <div class="row">
       <div class="col-xs-6">
         <div class="row">
@@ -245,7 +258,7 @@ tr.iwex-table-row-ctc > td .iwex-strong {
       <div class="col-xs-6">
         <div class="row">
           <p class="col-xs-5 text-right">Shipped To:</p>
-          <p class="col-xs-7">{{ html2text(doc.shipping_address or '') }}</p>
+          <p class="col-xs-7">{{ doc.shipping_address or doc.address_display }}</p>
         </div>
         {% if doc.shipping_mode %}
         <div class="row">
@@ -267,247 +280,228 @@ tr.iwex-table-row-ctc > td .iwex-strong {
     </div>
   </div>
 
-  <div class="iwex-body">
-    <table class="table table-bordered">
-      <thead>
-        <tr>
-          <th class="iwex-col-no">#</th>
-          <th class="iwex-col-description">HSN/SAC<br /><span class="iwex-strong">Item Description</span> (Serial No.)</th>
-          <th class="iwex-col-qty">Qty<br />UOM</th>
-          <th class="iwex-col-rate">Rate<br />T. Value</th>
-          {% for tax, _ in taxes|dictsort %}
-            <th class="iwex-col-tax">{{ tax }} %<br />Amount</th>
-          {% endfor %}
-          <th class="iwex-col-total">Gross<br />Amount</th>
-        </tr>
-        <tr class="iwex-table-row-smalltext iwex-table-row-accent">
-          {% for x in range(item_cols) %}
-          <th>{{ x + 1 }}</th>
-          {% endfor %}
-        </tr>
-        {% if brought_fwd.count %}
-        <tr class="iwex-table-row-accent">
-          <th>{{ brought_fwd.count }}</th>
-          <th>Brought Forward</th>
-          <th></th>
-          <th class="text-right">{{ frappe.utils.fmt_money(brought_fwd.amount, currency=doc.currency) }}</th>
-          {% for tax, _ in taxes|dictsort %}
-            <th class="text-right">
-              {{ frappe.utils.fmt_money(brought_fwd.get(tax), currency=doc.currency) }}
-            </th>
-          {% endfor %}
-          <th class="text-right">{{ frappe.utils.fmt_money(brought_fwd.total, currency=doc.currency) }}</th>
-        </tr>
-        {% endif %}
-      </thead>
-      {% set start_idx = (page - 1) * num_item_rows %}
-      {% set end_idx = [page * num_item_rows, doc.items|count]|min %}
-      <tbody class="iwex-tbody">
-        {% set subtotal = dict(**brought_fwd) %}
-        {% for x in range(start_idx, page * num_item_rows) %}
-        {% set item = doc.items[x] if x < doc.items|count else None %}
-        {% if item %}
-        <tr>
-          <td class="text-center">{{ item.idx }}</td>
-          <td>
-            {% if item.gst_hsn_code %}
-            <span class="text-right">[{{ item.gst_hsn_code }}]</span><br />
-            {% endif %}
-            <span class="iwex-strong">{{ item.description }}</span>
-            {% if item.serial_no %}
-            <br />
-            <span class="iwex-text-smaller">({{ item.serial_no.replace('\n', ', ') }})</span>
-            {% endif %}
-            </td>
-            <td class="text-center">{{ item.get_formatted('qty') }}<br />{{ item.uom }}</td>
-            {% set rate = 'price_list_rate' if item.price_list_rate else 'rate' %}
-            <td class="text-right">
-              {{ item.get_formatted(rate) }}<br />{{ item.get_formatted('amount') }}
-            </td>
-            {% set _ = subtotal.update({
-                'count': subtotal.count + 1,
-                'amount': subtotal.amount + item.amount,
-            }) %}
-            {% if item.gst_hsn_code %}
-              {% set _ = tax_breakup.setdefault(item.gst_hsn_code, {}) %}
-              {% set _ = tax_breakup[item.gst_hsn_code].update({
-                'taxable': tax_breakup[item.gst_hsn_code].get('taxable', 0) + item.amount,
-              }) %}
-            {% endif %}
-            {% set rates = json.loads(item.item_tax_rate) %}
-            {% set with_taxes = namespace(amount=item.amount) %}
-            {% for tax, rate in taxes|dictsort %}
-              <td class="text-right">
-                {% set r = rates.get(tax ~ ' - ' ~ co_abbr, rate) %}
-                {{ r }}%
-                <br />
-                {% set tax_amount = item.amount * r / 100 %}
-                {{ frappe.utils.fmt_money(tax_amount, currency=doc.currency) }}
-                {% set with_taxes.amount = with_taxes.amount + tax_amount %}
-                {% set _ = subtotal.update({tax: subtotal.get(tax, 0) + tax_amount}) %}
-                {% if item.gst_hsn_code %}
-                  {% set disc_tax_amount = item.net_amount * r / 100 %}
-                  {% set _ = tax_breakup[item.gst_hsn_code].update({
-                    tax: tax_breakup[item.gst_hsn_code].get(tax, 0) + disc_tax_amount,
-                    'total': tax_breakup[item.gst_hsn_code].get('total', 0) + disc_tax_amount,
-                  }) %}
-                {% endif %}
-              </td>
-            {% endfor %}
-            <td class="text-right">{{ frappe.utils.fmt_money(with_taxes.amount, currency=doc.currency) }}</td>
-            {% set _ = subtotal.update({'total': subtotal.total + with_taxes.amount}) %}
-          </tr>
-        {% else %}
-        <tr class="iwex-table-row-smalltext">
-          {% for _ in range(item_cols) %}
-          <td><br /></td>
-          {% endfor %}
-        </tr>
-        {% endif %}
+  <table class="table table-bordered iwex-table">
+    <thead>
+      <tr>
+        <th class="iwex-col-no">#</th>
+        <th class="iwex-col-description">HSN/SAC<br /><span class="iwex-strong">Item Description</span> (Serial No.)</th>
+        <th class="iwex-col-qty">Qty<br />UOM</th>
+        <th class="iwex-col-rate">Rate<br />T. Value</th>
+        {% for tax, _ in taxes|dictsort %}
+        <th class="iwex-col-tax">{{ tax }} %<br />Amount</th>
         {% endfor %}
-        <tfoot>
-          <tr class="iwex-table-row-accent">
-            <th>{{ subtotal.count }}</th>
-            <th>{{ 'Subtotal' if page < num_pages else 'Total' }}</th>
-            <th></th>
-            <th class="text-right">{{ frappe.utils.fmt_money(subtotal.amount, currency=doc.currency) }}</th>
-            {% for tax, _ in taxes|dictsort %}
-              <th class="text-right">
-                {{ frappe.utils.fmt_money(subtotal.get(tax), currency=doc.currency) }}
-              </th>
-            {% endfor %}
-            <th class="text-right">{{ frappe.utils.fmt_money(subtotal.total, currency=doc.currency) }}</th>
-          </tr>
-          {% set _ = brought_fwd.update({
-            'count': brought_fwd.count + subtotal.count,
-            'amount': brought_fwd.amount + subtotal.amount,
-            'total': brought_fwd.total + subtotal.total,
-          }) %}
-          {% for tax, _ in taxes|dictsort %}
-            {% set _ = brought_fwd.update({tax: brought_fwd.get(tax, 0) + subtotal[tax]}) %}
-          {% endfor %}
-          {% if page == num_pages %}
-          <tr class="iwex-table-row-accent">
-            <td colspan="3" class="text-center">
-              Round Off: {{ doc.get_formatted('rounding_adjustment') }}
-            </td>
-            <td colspan="{{ item_cols - 3 }}" class="text-center">
-              GST Total: {{ doc.get_formatted('total_taxes_and_charges') }}
-            </td>
-          </tr>
-          {%- if doc.discount_amount -%}
-          <tr class="iwex-table-row-accent iwex-table-row-ctc iwex-discount">
-          	<td colspan="{{ item_cols }}" class="text-center">
-              Less additional Discount: {{ doc.get_formatted("discount_amount") }}
-            </td>
-          </tr>
-          {%- endif -%}
-          <tr class="iwex-table-row-accent iwex-table-row-ctc">
-            <td colspan="{{ item_cols }}" class="text-center">
-              Grand Total: <span class="iwex-strong">{{ doc.get_formatted('rounded_total') }}</span><br />
-              ({{ doc.in_words }})
-            </td>
-          </tr>
+        <th class="iwex-col-total">Gross<br />Amount</th>
+      </tr>
+      <tr class="iwex-table-row-smalltext iwex-table-row-accent">
+        {% for x in range(item_cols) %}
+        <th>{{ x + 1 }}</th>
+        {% endfor %}
+      </tr>
+      {% if brought_fwd.count %}
+      <tr class="iwex-table-row-accent">
+        <th>{{ brought_fwd.count }}</th>
+        <th>Brought Forward</th>
+        <th></th>
+        <th class="text-right">{{ frappe.utils.fmt_money(brought_fwd.amount, currency=doc.currency) }}</th>
+        {% for tax, _ in taxes|dictsort %}
+        <th class="text-right">
+          {{ frappe.utils.fmt_money(brought_fwd.get(tax), currency=doc.currency) }}
+        </th>
+        {% endfor %}
+        <th class="text-right">{{ frappe.utils.fmt_money(brought_fwd.total, currency=doc.currency) }}</th>
+      </tr>
+      {% endif %}
+    </thead>
+    {% set start_idx = (page - 1) * num_item_rows %}
+    {% set end_idx = [page * num_item_rows, doc.items|count]|min %}
+    <tbody class="iwex-tbody">
+      {% set subtotal = dict(**brought_fwd) %}
+      {% for x in range(start_idx, page * num_item_rows) %}
+      {% set item = doc.items[x] if x < doc.items|count else None %}
+      {% if item %}
+      <tr>
+        <td class="text-center">{{ item.idx }}</td>
+        <td>
+          {% if item.gst_hsn_code %}
+          <span class="iwex-line">[{{ item.gst_hsn_code }}]</span>
           {% endif %}
-        </tfoot>
-      </tbody>
-    </table>
-  </div>
-  {% if page == num_pages %}
-  <div>
-    <div class="iwex-label">Tax Breakup:</div>
-    <table class="table table-bordered">
-      <thead>
-        <tr class="iwex-table-row-taxbreakup">
-          <th class="iwex-col-no">#</th>
-          <th>HSN/SAC</th>
-          <th class="iwex-col-rate">Taxable Value</th>
-          {% set labels = ['A', 'B', 'C'] %}
-          {% for tax, _ in taxes|dictsort %}
-            <th class="iwex-col-tax">{{ tax }} ({{ labels[loop.index0] }})</th>
-          {% endfor %}
-          <th class="iwex-col-total">Total ({{ labels[:taxes.keys()|length]|join('+') }})</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for hsn, amounts in tax_breakup|dictsort %}
-        <tr>
-          <td class="text-center">{{ loop.index }}</td>
-          <td>{{ hsn }}</td>
-          <td class="text-right">
-            {{ frappe.utils.fmt_money(amounts.get('taxable'), currency=doc.currency) }}
-          </td>
-          {% for tax, _ in taxes|dictsort %}
-          <td class="text-right">{{ frappe.utils.fmt_money(amounts.get(tax), currency=doc.currency) }}</td>
-          {% endfor %}
-          <td class="text-right">{{ frappe.utils.fmt_money(amounts.get('total'), currency=doc.currency) }}</td>
-        </tr>
+          <span class="iwex-strong iwex-line">{{ item.description }}</span>
+          {% if item.serial_no %}
+          <span class="iwex-text-smaller iwex-line">({{ item.serial_no.replace('\n', ', ') }})</span>
+          {% endif %}
+        </td>
+        <td class="text-center">
+          <span class="iwex-line">{{ item.get_formatted('qty') }}</span>
+          <span class="iwex-line">{{ item.uom }}</span>
+        </td>
+        {% set rate = 'price_list_rate' if item.price_list_rate else 'rate' %}
+        <td class="text-right">
+          <span class="iwex-line">{{ item.get_formatted(rate) }}</span>
+          <span class="iwex-line">{{ item.get_formatted('amount') }}</span>
+        </td>
+        {% set _ = subtotal.update({
+          'count': subtotal.count + 1,
+          'amount': subtotal.amount + item.amount,
+        }) %}
+        {% if item.gst_hsn_code %}
+        {% set _ = tax_breakup.setdefault(item.gst_hsn_code, {}) %}
+        {% set _ = tax_breakup[item.gst_hsn_code].update({
+          'taxable': tax_breakup[item.gst_hsn_code].get('taxable', 0) + item.amount,
+        }) %}
+        {% endif %}
+        {% set rates = json.loads(item.item_tax_rate) %}
+        {% set with_taxes = namespace(amount=item.amount) %}
+        {% for tax, rate in taxes|dictsort %}
+        <td class="text-right">
+          {% set r = rates.get(tax ~ ' - ' ~ co_abbr, rate) %}
+          <span class="iwex-line">{{ r }}%</span>
+          {% set tax_amount = item.amount * r / 100 %}
+          <span class="iwex-line">{{ frappe.utils.fmt_money(tax_amount, currency=doc.currency) }}</span>
+          {% set with_taxes.amount = with_taxes.amount + tax_amount %}
+          {% set _ = subtotal.update({tax: subtotal.get(tax, 0) + tax_amount}) %}
+          {% if item.gst_hsn_code %}
+          {% set disc_tax_amount = item.net_amount * r / 100 %}
+          {% set _ = tax_breakup[item.gst_hsn_code].update({
+            tax: tax_breakup[item.gst_hsn_code].get(tax, 0) + disc_tax_amount,
+            'total': tax_breakup[item.gst_hsn_code].get('total', 0) + disc_tax_amount,
+          }) %}
+          {% endif %}
+        </td>
         {% endfor %}
-      </tbody>
-    </table>
-  </div>
+        <td class="text-right">{{ frappe.utils.fmt_money(with_taxes.amount, currency=doc.currency) }}</td>
+        {% set _ = subtotal.update({'total': subtotal.total + with_taxes.amount}) %}
+      </tr>
+      {% else %}
+      <tr class="iwex-table-row-smalltext">
+        {% for _ in range(item_cols) %}
+        <td />
+        {% endfor %}
+      </tr>
+      {% endif %}
+      {% endfor %}
+      <tfoot>
+        <tr class="iwex-table-row-accent">
+          <th>{{ subtotal.count }}</th>
+          <th>{{ 'Subtotal' if page < num_pages else 'Total' }}</th>
+          <th></th>
+          <th class="text-right">{{ frappe.utils.fmt_money(subtotal.amount, currency=doc.currency) }}</th>
+          {% for tax, _ in taxes|dictsort %}
+          <th class="text-right">
+            {{ frappe.utils.fmt_money(subtotal.get(tax), currency=doc.currency) }}
+          </th>
+          {% endfor %}
+          <th class="text-right">{{ frappe.utils.fmt_money(subtotal.total, currency=doc.currency) }}</th>
+        </tr>
+        {% set _ = brought_fwd.update({
+          'count': brought_fwd.count + subtotal.count,
+          'amount': brought_fwd.amount + subtotal.amount,
+          'total': brought_fwd.total + subtotal.total,
+        }) %}
+        {% for tax, _ in taxes|dictsort %}
+        {% set _ = brought_fwd.update({tax: brought_fwd.get(tax, 0) + subtotal[tax]}) %}
+        {% endfor %}
+        {% if page == num_pages %}
+        <tr class="iwex-table-row-accent">
+          <td colspan="3" class="text-center">
+            Round Off: {{ doc.get_formatted('rounding_adjustment') }}
+          </td>
+          <td colspan="{{ item_cols - 3 }}" class="text-center">
+            GST Total: {{ doc.get_formatted('total_taxes_and_charges') }}
+          </td>
+        </tr>
+        {%- if doc.discount_amount -%}
+        <tr class="iwex-table-row-accent iwex-table-row-ctc iwex-discount">
+          <td colspan="{{ item_cols }}" class="text-center">
+            Less additional Discount: {{ doc.get_formatted("discount_amount") }}
+          </td>
+        </tr>
+        {%- endif -%}
+        <tr class="iwex-table-row-accent iwex-table-row-ctc">
+          <td colspan="{{ item_cols }}" class="text-center">
+            Grand Total: <span class="iwex-strong">{{ doc.get_formatted('rounded_total') }}</span><br />
+            ({{ doc.in_words }})
+          </td>
+        </tr>
+        {% endif %}
+      </tfoot>
+    </tbody>
+  </table>
+  {% if page == num_pages %}
+  <table class="table table-bordered">
+    <caption class="iwex-label">Tax Breakup:</caption>
+    <thead>
+      <tr class="iwex-table-row-taxbreakup">
+        <th class="iwex-col-no">#</th>
+        <th>HSN/SAC</th>
+        <th class="iwex-col-rate">Taxable Value</th>
+        {% set labels = ['A', 'B', 'C'] %}
+        {% for tax, _ in taxes|dictsort %}
+        <th class="iwex-col-tax">{{ tax }} ({{ labels[loop.index0] }})</th>
+        {% endfor %}
+        <th class="iwex-col-total">Total ({{ labels[:taxes.keys()|length]|join('+') }})</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for hsn, amounts in tax_breakup|dictsort %}
+      <tr>
+        <td class="text-center">{{ loop.index }}</td>
+        <td>{{ hsn }}</td>
+        <td class="text-right">
+          {{ frappe.utils.fmt_money(amounts.get('taxable'), currency=doc.currency) }}
+        </td>
+        {% for tax, _ in taxes|dictsort %}
+        <td class="text-right">{{ frappe.utils.fmt_money(amounts.get(tax), currency=doc.currency) }}</td>
+        {% endfor %}
+        <td class="text-right">{{ frappe.utils.fmt_money(amounts.get('total'), currency=doc.currency) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
   {% endif %}
 
-  {% if page == num_pages and doc.terms %}
-  <div>
-    <div class="row">
-      <div class="col-xs-12">
-        <div class="iwex-label">Terms &amp; Conditions:</div>
-        <p class="iwex-text-small">{{ doc.terms }}</p>
-      </div>
+  {% if doc.terms and page == num_pages %}
+  <div class="row iwex-terms">
+    <div class="col-xs-12">
+      <div class="iwex-label">Terms &amp; Conditions:</div>
+      <p class="iwex-text-small">{{ doc.terms }}</p>
     </div>
   </div>
   {% endif %}
 
-  <div class="iwex-footer">
-    {% if page == num_pages %}
-      {% set pipe = joiner('|') %}
-      <div class="row iwex-text-small">
-        <div class="col-xs-12">
-          <p>
-            {% if bank_details %} {{ pipe() }}
-            <span class="iwex-label">Bank Details</span>: {{ bank_details }}
-            {% endif %}
-            {% if payment_methods %} {{ pipe() }}
-            <span class="iwex-label">Payment</span>: {{ payment_methods }}
-            {% endif %}
-          </p>
-        </div>
-      </div>
-      <hr class="iwex-hr-thin" />
-      <div class="row iwex-aside iwex-text-smaller">
-        <div class="col-xs-4">
-          <p>Received goods in Good Condition</p>
-          <br /><br />
-          <p>Name, Mobile &amp; Signature of the receiver.</p>
-        </div>
-        <div class="col-xs-4 text-center iwex-text-small">
-          <div class="iwex-strong iwex-text-larger">Thank You</div>
-          <p>for being our Customer.<br />Look forward to serve you again.</p>
-        </div>
-        <div class="col-xs-4">
-          <p>Prepared by: {{ frappe.db.get_value("User", frappe.user, "first_name") }}</p>
-          <br /><br />
-          <p class="text-right">Company Stamp &amp; Signature</p>
-        </div>
-      </div>
-    {% endif %}
-    <hr class="iwex-hr-thin iwex-screen-hidden" />
-    <div class="row iwex-screen-hidden iwex-text-footer-last">
+  {% if page == num_pages %}
+  <hr class="iwex-hr-thin" />
+  <div class="row iwex-aside iwex-text-smaller">
+    <div class="col-xs-4">
+      <p>Received goods in Good Condition</p>
+      <br /><br />
+      <p>Name, Mobile &amp; Signature of the receiver.</p>
+    </div>
+    <div class="col-xs-4 text-center iwex-text-small">
+      <div class="iwex-strong iwex-text-larger">Thank You</div>
+      <p>for being our Customer.<br />Look forward to serve you again.</p>
+    </div>
+    <div class="col-xs-4">
+      <p>Prepared by: {{ frappe.db.get_value("User", frappe.user, "first_name") }}</p>
+      <br /><br />
+      <p class="text-right">Company Stamp &amp; Signature</p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endfor %}
+
+<div id="footer-html">
+  <div class="iwex-footer visible-pdf">
+    <hr class="iwex-hr-thin" />
+    <div class="row">
       <div class="col-xs-12 text-center">
         <span class="iwex-label">NB</span>: Company Stamp or Signature not required, if this document has received by email.
       </div>
     </div>
-    <div class="row iwex-screen-hidden iwex-text-footer-last">
+    <div class="row">
       <div class="col-xs-4 text-left">GST Invoice: {{ doc.name }}</div>
       <div class="col-xs-4 text-center">Dated: {{ doc.get_formatted('posting_date') }}</div>
-      <div class="col-xs-4 text-right">Page {{ page }} of {{ num_pages }}</div>
+      <div class="col-xs-4 text-right">Page <span class="page"></span> of <span class="topage"></span></div>
     </div>
-    {% if page < num_pages %}
-    <div class="row iwex-screen-hidden iwex-text-footer-last">
-      <div class="col-xs-12 text-right">To be continued in the next page</div>
-    </div>
-    {% endif %}
   </div>
 </div>
-{% endfor %}

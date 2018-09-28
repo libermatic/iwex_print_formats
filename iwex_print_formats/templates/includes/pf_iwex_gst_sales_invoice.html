@@ -64,7 +64,7 @@
 
 {% for page in range(1, num_pages + 1) %}
 <div class="page-break iwex-page">
-  {% if page > 1 %}
+  {% if prev_page_indicator and page > 1 %}
   <div class="row iwex-screen-hidden">
     <div class="col-xs-12 text-right">
       Continuation of the previous page...
