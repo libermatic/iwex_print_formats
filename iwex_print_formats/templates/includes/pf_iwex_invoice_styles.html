@@ -6,41 +6,48 @@
     padding: 10mm;
   }
 }
+/* mm as mmmmm because frappe.utils.pdf.read_options_from_html */
 @media print {
   .print-format {
-    margin-top: 0mm;
-    margin-left: 0mm;
-    margin-right: 0mm;
-    margin-bottom: 0mm;
-  }
-  .print-format .iwex-page {
-    position: relative;
-    height: {{ page_height or '285mm' }};
-  }
-  .iwex-page {
-    margin: 0 10mm;
-    padding-top: 10mm;
+    margin-top: {{ (header_height or 10) + (6 if doc.po_no else 0) }}mmmm;
+    margin-left: {{ side_margin or 10 }}mmmm;
+    margin-right: {{ side_margin or 10 }}mmmm;
+    margin-bottom: {{ footer_height or 10 }}mmmm;
   }
 }
-.iwex-page h1, .iwex-page h2 {
+.iwex-header {
+  padding-bottom: 4pt;
+  border-bottom: 1px solid #000000;
+}
+.iwex-header h1, .iwex-header h2 {
   font-size: 18pt;
+}
+.iwex-header h1, .iwex-header h2, .iwex-header p {
   margin: 0;
+  line-height: 1.3;
+}
+.iwex-footer {
+  /* reset hardcoded value: copied frappe/templates/print_formats/pdf_header_footer.html */
+  margin-top: -15mm;
+  font-size: 6pt;
 }
 .iwex-customer_name {
   font-size: 12pt;
 }
-.iwex-page p {
+.iwex-page {
   margin: 0;
-  line-height: 1.3;
+  padding: 0;
 }
 .iwex-page .table {
   margin: 4pt 0;
   table-layout: fixed;
   width: 100%;
+  page-break-inside: avoid;
 }
 .iwex-page .table th, .iwex-page .table td {
   padding: 2pt 4pt !important;
   line-height: 1.3;
+  vertical-align: middle !important;
 }
 .iwex-page .table th {
   font-weight: normal;
@@ -52,13 +59,13 @@
 .iwex-col-description {
 }
 .iwex-col-qty {
-  width: {{ col_width_qty or '32pt' }};
+  width: {{ col_width_qty or '35pt' }};
 }
 .iwex-col-rate {
-  width: {{ col_width_rate or '65pt' }};
+  width: {{ col_width_rate or '75pt' }};
 }
 .iwex-col-tax {
-  width: {{ col_width_tax or '60pt' }};
+  width: {{ col_width_tax or '65pt' }};
 }
 .iwex-col-total {
   width: {{ col_width_amount or '75pt' }};
@@ -69,26 +76,32 @@
 .iwex-page .table tbody td, .iwex-page .table tfoot th {
   font-size: 10pt;
 }
+.iwex-page .iwex-table tbody td {
+  height: 3.6em;
+  border-top: none !important;
+  border-bottom: none !important;
+}
 tr.iwex-table-row-accent th {
-  font-size: 7pt;
   background-color: #C0C0C0;
 }
 tr.iwex-table-row-taxbreakup th {
   font-size: 10pt;
   background-color: #C0C0C0;
 }
-.iwex-table-row-smalltext > th {
+tr.iwex-table-row-smalltext > th {
   font-size: 7pt;
 }
 tr.iwex-discount td {
   background-color: #C0C0C0;
 }
 .iwex-invoice-heading {
-  text-align: right;
   text-transform: uppercase;
 }
 .iwex-label {
   text-decoration: underline;
+}
+caption.iwex-label {
+  padding: 0 0 3px;
 }
 .iwex-strong {
   font-weight: bold;
@@ -104,12 +117,6 @@ tr.iwex-discount td {
 }
 .iwex-text-smaller {
   font-size: 7pt;
-}
-.iwex-footer {
-  padding-top: 4pt;
-}
-.iwex-text-footer-last {
-  font-size: 8px;
 }
 tr.iwex-table-row-ctc > td {
   font-size: 11pt;
@@ -127,24 +134,20 @@ tr.iwex-table-row-ctc > td .iwex-strong {
 .iwex-po-row {
   background-color: #C0C0C0;
   padding: 2pt 0;
-  margin: -4pt 0;
+}
+.iwex-line {
+  display: block;
 }
 @media screen {
   .iwex-screen-hidden {
     display: none;
   }
 }
-@media print {
-  .iwex-page {
-    overflow: hidden;
-  }
-  .iwex-footer {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding-bottom: 10mm;
-    background-color: white;
-  }
+.iwex-terms {
+  margin-bottom: 4pt;
+}
+.iwex-terms * {
+  margin: 0;
+  line-height: 1.3;
 }
 </style>
