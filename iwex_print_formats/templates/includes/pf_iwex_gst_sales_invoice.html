@@ -208,7 +208,7 @@
       {% else %}
       <tr class="iwex-table-row-smalltext">
         {% for _ in range(item_cols) %}
-        <td><br /></td>
+        <td />
         {% endfor %}
       </tr>
       {% endif %}
@@ -294,7 +294,7 @@
   {% endif %}
 
   {% if doc.terms and page == num_pages %}
-  <div class="iwex-section row iwex-terms">
+  <div class="row iwex-terms">
     <div class="col-xs-12">
       <div class="iwex-label">Terms &amp; Conditions:</div>
       <p class="iwex-text-small">{{ doc.terms }}</p>
