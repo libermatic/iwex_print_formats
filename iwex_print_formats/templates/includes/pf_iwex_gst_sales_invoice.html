@@ -157,18 +157,21 @@
         <td class="text-center">{{ item.idx }}</td>
         <td>
           {% if item.gst_hsn_code %}
-          <span class="text-right">[{{ item.gst_hsn_code }}]</span><br />
+          <span class="iwex-line">[{{ item.gst_hsn_code }}]</span>
           {% endif %}
-          <span class="iwex-strong">{{ item.description }}</span>
+          <span class="iwex-strong iwex-line">{{ item.description }}</span>
           {% if item.serial_no %}
-          <br />
-          <span class="iwex-text-smaller">({{ item.serial_no.replace('\n', ', ') }})</span>
+          <span class="iwex-text-smaller iwex-line">({{ item.serial_no.replace('\n', ', ') }})</span>
           {% endif %}
         </td>
-        <td class="text-center">{{ item.get_formatted('qty') }}<br />{{ item.uom }}</td>
+        <td class="text-center">
+          <span class="iwex-line">{{ item.get_formatted('qty') }}</span>
+          <span class="iwex-line">{{ item.uom }}</span>
+        </td>
         {% set rate = 'price_list_rate' if item.price_list_rate else 'rate' %}
         <td class="text-right">
-          {{ item.get_formatted(rate) }}<br />{{ item.get_formatted('amount') }}
+          <span class="iwex-line">{{ item.get_formatted(rate) }}</span>
+          <span class="iwex-line">{{ item.get_formatted('amount') }}</span>
         </td>
         {% set _ = subtotal.update({
           'count': subtotal.count + 1,
@@ -185,10 +188,9 @@
         {% for tax, rate in taxes|dictsort %}
         <td class="text-right">
           {% set r = rates.get(tax ~ ' - ' ~ co_abbr, rate) %}
-          {{ r }}%
-          <br />
+          <span class="iwex-line">{{ r }}%</span>
           {% set tax_amount = item.amount * r / 100 %}
-          {{ frappe.utils.fmt_money(tax_amount, currency=doc.currency) }}
+          <span class="iwex-line">{{ frappe.utils.fmt_money(tax_amount, currency=doc.currency) }}</span>
           {% set with_taxes.amount = with_taxes.amount + tax_amount %}
           {% set _ = subtotal.update({tax: subtotal.get(tax, 0) + tax_amount}) %}
           {% if item.gst_hsn_code %}
